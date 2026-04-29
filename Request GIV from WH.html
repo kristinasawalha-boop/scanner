@@ -94,7 +94,24 @@ select.inp{appearance:auto;cursor:pointer}
 
     <div class="card">
       <div class="card-title">Items Requested <span id="item-count-lbl" style="color:#007B7B;font-weight:700">(1 item)</span></div>
-      <div id="line-items-container"></div>
+      <div id="line-items-container">
+  <div class="line-item" id="li-1">
+    <div class="line-item-num">Item 1</div>
+    <div class="frow">
+      <label class="lbl">Description <span class="req">*</span></label>
+      <input class="inp" id="li-1-desc" placeholder="e.g. SUN2000-10KTL-M3" oninput="onDescInput('li-1')">
+      <div class="search-results" id="li-1-results"></div>
+    </div>
+    <div class="frow" id="li-1-qty-row" style="display:none">
+      <label class="lbl">Quantity <span class="req">*</span></label>
+      <div class="qty-row">
+        <button class="qty-btn" type="button" onclick="changeQty('li-1',-1)">-</button>
+        <input class="inp qty-inp" id="li-1-qty" type="number" min="1" value="1">
+        <button class="qty-btn" type="button" onclick="changeQty('li-1',1)">+</button>
+      </div>
+    </div>
+  </div>
+</div>
       <button class="btn-add-line" type="button" onclick="addLineItem()">+ Add Another Item</button>
     </div>
 
@@ -346,7 +363,11 @@ function resetForm() {
 
 function esc(s) { return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
-window.addEventListener('load', function() { addLineItem(); });
+window.addEventListener('load', function() {
+  lineItems.push('li-1');
+  lineCounter = 1;
+  updateItemCount();
+});
 </script>
 </body>
 </html>
