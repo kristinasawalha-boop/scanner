@@ -136,7 +136,7 @@ select.inp{appearance:auto;cursor:pointer}
 </div>
 
 <script>
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbyZ4J99cIVBIqqiyyX9boAvacaEXMJUBDl-J_RzF-Ija2QGW3WWUyMxYdPE2yCo1NqonA/exec';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbxvbMWd49WmEREAV0GRJi3xGoo7U6silb3hQ_G-CLHiqMXpOMUHbETtA0Cpg3k1SIH_/exec';
 var currentLang = 'en';
 var lineItems = [];
 var lineCounter = 0;
@@ -305,7 +305,7 @@ function submitForm() {
   })
   .then(function(r) { return r.json(); })
   .then(function(res) {
-    if (res.ok) {
+    if (res.ok) 
       var summary = '<strong>Stock:</strong> ' + stock + '<br>' +
         '<strong>Client:</strong> ' + client + '<br>' +
         (doNum ? '<strong>D/O Number:</strong> ' + doNum + '<br>' : '') +
