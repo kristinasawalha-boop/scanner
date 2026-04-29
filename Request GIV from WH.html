@@ -346,7 +346,7 @@ function resetForm() {
 
 function esc(s) { return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
-addLineItem();
+window.addEventListener('load', function() { addLineItem(); });
 </script>
 </body>
 </html>
