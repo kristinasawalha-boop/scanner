@@ -198,7 +198,7 @@ select.inp{appearance:auto}
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbyZ4J99cIVBIqqiyyX9boAvacaEXMJUBDl-J_RzF-Ija2QGW3WWUyMxYdPE2yCo1NqonA/exec';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbxvbMWd49WmEREAV0GRJi3xGoo7U6silb3hQ_G-CLHiqMXpOMUHbETtA0Cpg3k1SIH_/exec';
 
 var currentTab = 'receive';
 var currentStock = '';
@@ -243,17 +243,6 @@ function switchTab(tab) {
   });
   if (tab==='dispatch' && currentStock) loadRequests();
   if (tab==='pickup') loadAtDispatch();
-}
-
-var lastScanned = {};
-var DEDUP_MS = 800;
-
-function isDuplicate(serial) {
-  var now = Date.now();
-  var key = serial.toUpperCase();
-  if (lastScanned[key] && (now - lastScanned[key]) < DEDUP_MS) return true;
-  lastScanned[key] = now;
-  return false;
 }
 
 function callGAS(action, params, cb) {
