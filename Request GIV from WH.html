@@ -5,59 +5,52 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Request to Issue Material - Storage Solutions JO</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:#f0f7f7;min-height:100vh;padding-bottom:40px}
-.header{background:#007B7B;padding:20px 24px 16px;display:flex;align-items:center;gap:14px}
-.header img{height:52px;width:auto}
-.header-company{font-size:18px;font-weight:800;color:#fff}
-.header-tagline{font-size:12px;color:rgba(255,255,255,.65);margin-top:2px}
-.header-form-title{font-size:13px;color:#a0d4d4;font-weight:700;margin-top:6px;text-transform:uppercase;letter-spacing:.5px}
-.form-wrap{max-width:520px;margin:24px auto;padding:0 16px}
-.card{background:#fff;border-radius:14px;padding:20px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,80,80,.07)}
-.card-title{font-size:12px;font-weight:800;color:#007B7B;text-transform:uppercase;letter-spacing:.6px;margin-bottom:16px;padding-bottom:10px;border-bottom:1.5px solid #e8f4f4}
-.frow{margin-bottom:14px}
-.lbl{font-size:11px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;display:block}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f7f7;min-height:100vh;padding-bottom:40px}
+.header{background:#007B7B;padding:16px;display:flex;align-items:center;gap:12px}
+.header img{height:48px;width:auto}
+.header-company{font-size:17px;font-weight:800;color:#fff}
+.header-tagline{font-size:11px;color:rgba(255,255,255,.65);margin-top:2px}
+.header-form-title{font-size:12px;color:#a0d4d4;font-weight:700;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.wrap{max-width:520px;margin:20px auto;padding:0 14px}
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,80,80,.08)}
+.card-title{font-size:12px;font-weight:800;color:#007B7B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #e8f4f4}
+.frow{margin-bottom:12px}
+.lbl{font-size:11px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;display:block}
 .req{color:#007B7B}
-.inp{width:100%;padding:12px 14px;border:1.5px solid #d0e8e8;border-radius:9px;font-size:15px;color:#111;background:#fff;outline:none;transition:border-color .15s;font-family:'DM Sans',sans-serif}
-.inp:focus{border-color:#007B7B;box-shadow:0 0 0 3px rgba(0,123,123,.08)}
-select.inp{appearance:auto;cursor:pointer}
-.inp-arabic{direction:rtl;text-align:right}
+.inp{width:100%;padding:11px 12px;border:1.5px solid #c8dede;border-radius:8px;font-size:15px;color:#111;background:#fff;outline:none}
+.inp:focus{border-color:#007B7B}
+select.inp{appearance:auto}
 .hint{font-size:11px;color:#999;margin-top:4px}
-.required-note{font-size:11px;color:#007B7B;text-align:right;margin-bottom:16px}
-.lang-toggle{display:flex;gap:6px;margin-bottom:8px}
-.lang-btn{padding:5px 12px;border:1.5px solid #c8dede;border-radius:6px;background:#fff;color:#666;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
+.lang-toggle{display:flex;gap:6px;margin-bottom:6px}
+.lang-btn{padding:5px 12px;border:1.5px solid #c8dede;border-radius:6px;background:#fff;color:#666;font-size:12px;font-weight:700;cursor:pointer}
 .lang-btn.active{background:#007B7B;border-color:#007B7B;color:#fff}
 
-/* Search results */
-.search-results{margin-top:6px}
-.search-result-item{padding:10px 12px;background:#f0fafa;border:1.5px solid #c8dede;border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .15s}
-.search-result-item:hover{border-color:#007B7B;background:#e6f5f5}
-.sri-desc{font-size:14px;font-weight:700;color:#111}
-.sri-stock{font-size:12px;font-weight:700;margin-top:3px}
-.sri-stock.in{color:#065f46}
-.sri-stock.out{color:#991b1b}
-.search-status{font-size:12px;color:#888;padding:8px 0}
-
-/* Line items */
-.line-item{background:#f8fffe;border:1.5px solid #c8dede;border-radius:10px;padding:14px;margin-bottom:8px;position:relative}
-.line-item-num{font-size:11px;font-weight:800;color:#007B7B;text-transform:uppercase;margin-bottom:10px}
-.rm-line-btn{position:absolute;top:8px;right:8px;background:none;border:none;color:#c02020;font-size:20px;cursor:pointer;font-family:'DM Sans',sans-serif;line-height:1}
-.qty-row{display:flex;align-items:center;gap:8px}
-.qty-btn{width:34px;height:34px;background:#e0f2f2;border:1.5px solid #c8dede;border-radius:7px;color:#007B7B;font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Sans',sans-serif}
-.qty-inp{width:60px;text-align:center;font-size:17px;font-weight:700;padding:8px 4px}
-.confirmed-badge{display:inline-block;background:#d1fae5;border:1px solid #6ee7b7;color:#065f46;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;margin-top:6px}
-
-.btn-add-line{width:100%;padding:11px;background:#e0f2f2;border:1.5px dashed #7bbebe;border-radius:9px;color:#007B7B;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:4px}
-.btn-submit{width:100%;padding:16px;background:#007B7B;color:#fff;border:none;border-radius:11px;font-size:16px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn-submit:disabled{background:#b0c8c8;cursor:not-allowed}
-.success-screen{display:none;text-align:center;padding:40px 20px}
-.success-title{font-size:22px;font-weight:800;color:#007B7B;margin-bottom:8px}
-.success-sub{font-size:14px;color:#666;margin-bottom:24px;line-height:1.6}
-.success-summary{background:#f0fafa;border-radius:10px;padding:14px;margin-bottom:20px;text-align:left;font-size:13px;color:#444;line-height:1.7}
-.btn-another{padding:13px 24px;background:#e0f2f2;border:none;border-radius:10px;color:#007B7B;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
-.spin{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .65s linear infinite}
+/* Items */
+.item-box{background:#f8fffe;border:1.5px solid #c8dede;border-radius:10px;padding:14px;margin-bottom:10px}
+.item-num{font-size:11px;font-weight:800;color:#007B7B;text-transform:uppercase;margin-bottom:10px}
+.search-result{background:#fff;border:1.5px solid #c8dede;border-radius:8px;padding:10px 12px;margin-top:6px;cursor:pointer}
+.search-result:hover{border-color:#007B7B}
+.sr-desc{font-size:14px;font-weight:700;color:#111}
+.sr-part{font-size:11px;color:#888;margin-top:1px}
+.sr-status{font-size:12px;font-weight:700;margin-top:4px}
+.sr-status.ok{color:#065f46}
+.sr-status.no{color:#991b1b}
+.qty-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.qty-btn{width:34px;height:34px;background:#e0f2f2;border:1.5px solid #c8dede;border-radius:7px;color:#007B7B;font-size:20px;font-weight:700;cursor:pointer;flex-shrink:0}
+.qty-inp{width:60px;text-align:center;font-size:16px;font-weight:700;padding:7px 4px;border:1.5px solid #c8dede;border-radius:7px}
+.rm-item-btn{float:right;background:none;border:none;color:#c02020;font-size:20px;cursor:pointer;margin-top:-2px}
+.btn-add{width:100%;padding:11px;background:#e0f2f2;border:1.5px dashed #7bbebe;border-radius:9px;color:#007B7B;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px}
+.btn-submit{width:100%;padding:15px;background:#007B7B;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px}
+.btn-submit:disabled{background:#b0c8c8}
+.success{display:none;text-align:center;padding:40px 20px}
+.success-icon{font-size:60px;margin-bottom:12px}
+.success-title{font-size:20px;font-weight:800;color:#007B7B;margin-bottom:8px}
+.success-sub{font-size:13px;color:#666;margin-bottom:20px;line-height:1.5}
+.btn-another{padding:12px 24px;background:#e0f2f2;border:none;border-radius:10px;color:#007B7B;font-size:14px;font-weight:700;cursor:pointer}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .65s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+.req-note{font-size:11px;color:#007B7B;text-align:right;margin-bottom:14px}
 </style>
 </head>
 <body>
@@ -70,16 +63,16 @@ select.inp{appearance:auto;cursor:pointer}
   </div>
 </div>
 
-<div class="form-wrap">
+<div class="wrap">
   <div id="form-section">
-    <p class="required-note">Fields marked <span class="req">*</span> are required</p>
+    <p class="req-note">Fields marked <span class="req">*</span> are required</p>
 
     <div class="card">
       <div class="card-title">Stock Details</div>
       <div class="frow">
         <label class="lbl">Stock Type <span class="req">*</span></label>
-        <select class="inp" id="f-stock" onchange="onStockChange()" required>
-          <option value="">-- select stock type --</option>
+        <select class="inp" id="f-stock">
+          <option value="">-- select --</option>
           <option value="Huawei Main Stock">Huawei</option>
           <option value="Batteries Main Stock">Batteries</option>
           <option value="Modules Main Stock">Modules</option>
@@ -93,26 +86,26 @@ select.inp{appearance:auto;cursor:pointer}
     </div>
 
     <div class="card">
-      <div class="card-title">Items Requested <span id="item-count-lbl" style="color:#007B7B;font-weight:700">(1 item)</span></div>
-      <div id="line-items-container">
-  <div class="line-item" id="li-1">
-    <div class="line-item-num">Item 1</div>
-    <div class="frow">
-      <label class="lbl">Description <span class="req">*</span></label>
-      <input class="inp" id="li-1-desc" placeholder="e.g. SUN2000-10KTL-M3" oninput="onDescInput('li-1')">
-      <div class="search-results" id="li-1-results"></div>
-    </div>
-    <div class="frow" id="li-1-qty-row" style="display:none">
-      <label class="lbl">Quantity <span class="req">*</span></label>
-      <div class="qty-row">
-        <button class="qty-btn" type="button" onclick="changeQty('li-1',-1)">-</button>
-        <input class="inp qty-inp" id="li-1-qty" type="number" min="1" value="1">
-        <button class="qty-btn" type="button" onclick="changeQty('li-1',1)">+</button>
+      <div class="card-title">Items Requested</div>
+      <div id="items-container">
+        <div class="item-box" id="item-0">
+          <div class="item-num">Item 1</div>
+          <div class="frow">
+            <label class="lbl">Description <span class="req">*</span></label>
+            <input class="inp" id="desc-0" placeholder="e.g. 10KTL-M1" oninput="searchItem(0)">
+            <div id="results-0"></div>
+          </div>
+          <div class="frow">
+            <label class="lbl">Quantity <span class="req">*</span></label>
+            <div class="qty-row">
+              <button class="qty-btn" type="button" onclick="chgQty(0,-1)">-</button>
+              <input class="qty-inp" id="qty-0" type="number" min="1" value="1">
+              <button class="qty-btn" type="button" onclick="chgQty(0,1)">+</button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-      <button class="btn-add-line" type="button" onclick="addLineItem()">+ Add Another Item</button>
+      <button class="btn-add" type="button" onclick="addItem()">+ Add Another Item</button>
     </div>
 
     <div class="card">
@@ -124,6 +117,7 @@ select.inp{appearance:auto;cursor:pointer}
           <button class="lang-btn" id="btn-ar" type="button" onclick="setLang('ar')">Arabic</button>
         </div>
         <input class="inp" id="f-client" placeholder="Client name" required>
+        <p class="hint">Name of the client receiving these items</p>
       </div>
     </div>
 
@@ -131,7 +125,7 @@ select.inp{appearance:auto;cursor:pointer}
       <div class="card-title">Requestor</div>
       <div class="frow">
         <label class="lbl">Your Name <span class="req">*</span></label>
-        <input class="inp" id="f-requestor" placeholder="Staff member name" required>
+        <input class="inp" id="f-requestor" placeholder="Staff member name">
       </div>
       <div class="frow">
         <label class="lbl">Authorization Code <span class="req">*</span></label>
@@ -143,135 +137,94 @@ select.inp{appearance:auto;cursor:pointer}
     <button class="btn-submit" id="btn-submit" type="button" onclick="submitForm()">Submit Request</button>
   </div>
 
-  <div class="success-screen" id="success-section">
-    <div style="font-size:56px;margin-bottom:16px">&#10003;</div>
+  <div class="success" id="success-section">
+    <div class="success-icon">ok</div>
     <div class="success-title">Request Submitted</div>
-    <div class="success-sub">Your material request has been received.<br>The warehouse team will process it shortly.</div>
-    <div class="success-summary" id="success-summary"></div>
+    <div class="success-sub">Your material request has been received. The warehouse team will process it shortly.</div>
     <button class="btn-another" onclick="resetForm()">Submit Another Request</button>
   </div>
 </div>
 
 <script>
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbxvbMWd49WmEREAV0GRJi3xGoo7U6silb3hQ_G-CLHiqMXpOMUHbETtA0Cpg3k1SIH_/exec';
+var itemCount = 1;
+var searchTimers = {};
 var currentLang = 'en';
-var lineItems = [];
-var lineCounter = 0;
-var currentStock = '';
 
-function onStockChange() {
-  currentStock = document.getElementById('f-stock').value;
-  // Re-validate any existing line items
-  lineItems.forEach(function(id) {
-    var descEl = document.getElementById(id+'-desc');
-    if (descEl && descEl.value.trim().length > 1) searchItem(id);
-  });
+function chgQty(i, d) {
+  var el = document.getElementById('qty-' + i);
+  el.value = Math.max(1, (parseInt(el.value) || 1) + d);
 }
 
-function addLineItem() {
-  lineCounter++;
-  var id = 'li-' + lineCounter;
-  lineItems.push(id);
-  var container = document.getElementById('line-items-container');
+function addItem() {
+  var idx = itemCount;
+  itemCount++;
+  var container = document.getElementById('items-container');
   var div = document.createElement('div');
-  div.className = 'line-item';
-  div.id = id;
+  div.className = 'item-box';
+  div.id = 'item-' + idx;
   div.innerHTML =
-    '<div class="line-item-num">Item ' + lineItems.length + '</div>' +
-    (lineItems.length > 1 ? '<button class="rm-line-btn" type="button" onclick="removeLineItem(\'' + id + '\')">&#215;</button>' : '') +
+    '<div class="item-num">Item ' + itemCount +
+    '<button class="rm-item-btn" type="button" onclick="removeItem(' + idx + ')">x</button></div>' +
     '<div class="frow">' +
       '<label class="lbl">Description <span class="req">*</span></label>' +
-      '<input class="inp" id="' + id + '-desc" placeholder="e.g. SUN2000-10KTL-M3" oninput="onDescInput(\'' + id + '\')">' +
-      '<div class="search-results" id="' + id + '-results"></div>' +
+      '<input class="inp" id="desc-' + idx + '" placeholder="e.g. 10KTL-M1" oninput="searchItem(' + idx + ')">' +
+      '<div id="results-' + idx + '"></div>' +
     '</div>' +
-    '<div class="frow" id="' + id + '-qty-row" style="display:none">' +
+    '<div class="frow">' +
       '<label class="lbl">Quantity <span class="req">*</span></label>' +
       '<div class="qty-row">' +
-        '<button class="qty-btn" type="button" onclick="changeQty(\'' + id + '\',-1)">-</button>' +
-        '<input class="inp qty-inp" id="' + id + '-qty" type="number" min="1" value="1">' +
-        '<button class="qty-btn" type="button" onclick="changeQty(\'' + id + '\',1)">+</button>' +
+        '<button class="qty-btn" type="button" onclick="chgQty(' + idx + ',-1)">-</button>' +
+        '<input class="qty-inp" id="qty-' + idx + '" type="number" min="1" value="1">' +
+        '<button class="qty-btn" type="button" onclick="chgQty(' + idx + ',1)">+</button>' +
       '</div>' +
-    '</div>' +
-    '<div id="' + id + '-confirmed" style="display:none"><span class="confirmed-badge">&#10003; Confirmed</span></div>';
+    '</div>';
   container.appendChild(div);
-  updateItemCount();
 }
 
-var searchTimers = {};
-function onDescInput(id) {
-  var val = document.getElementById(id + '-desc').value.trim();
-  clearTimeout(searchTimers[id]);
-  if (val.length < 2) {
-    document.getElementById(id + '-results').innerHTML = '';
-    document.getElementById(id + '-qty-row').style.display = 'none';
-    return;
-  }
-  document.getElementById(id + '-results').innerHTML = '<div class="search-status">Searching...</div>';
-  searchTimers[id] = setTimeout(function() { searchItem(id); }, 500);
-}
-
-function searchItem(id) {
-  if (!currentStock) {
-    document.getElementById(id + '-results').innerHTML = '<div class="search-status" style="color:#991b1b">Please select stock type first.</div>';
-    return;
-  }
-  var query = document.getElementById(id + '-desc').value.trim();
-  fetch(GAS_URL + '?action=searchDescription', {
-    method: 'POST',
-    body: JSON.stringify({stockSheet: currentStock, query: query})
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(res) {
-    var el = document.getElementById(id + '-results');
-    if (!res.ok || !res.results || !res.results.length) {
-      el.innerHTML = '<div class="search-status" style="color:#991b1b">No match found. Check description or contact operations.</div>';
-      document.getElementById(id + '-qty-row').style.display = 'none';
-      return;
-    }
-    el.innerHTML = res.results.slice(0,3).map(function(r) {
-      return '<div class="search-result-item" onclick="selectItem(\'' + id + '\',\'' + esc(r.description) + '\',' + r.available + ')">' +
-        '<div class="sri-desc">' + esc(r.description) + (r.partNo ? ' <span style="font-size:11px;color:#888">' + esc(r.partNo) + '</span>' : '') + '</div>' +
-        '<div class="sri-stock ' + (r.available ? 'in' : 'out') + '">' + (r.available ? '&#10003; In stock' : '&#215; Not available') + '</div>' +
-      '</div>';
-    }).join('');
-    // Auto-show quantity if exact match
-    if (res.results.length === 1) {
-      document.getElementById(id + '-qty-row').style.display = 'block';
-    }
-  })
-  .catch(function() {
-    document.getElementById(id + '-results').innerHTML = '<div class="search-status" style="color:#991b1b">Connection error. Check internet.</div>';
-  });
-}
-
-function selectItem(id, description, available) {
-  document.getElementById(id + '-desc').value = description;
-  document.getElementById(id + '-results').innerHTML = '<div class="search-status ' + (available ? '' : '') + '" style="color:' + (available ? '#065f46' : '#991b1b') + ';font-weight:700">' + (available ? '&#10003; In stock - confirm quantity below' : '&#215; Item not currently available') + '</div>';
-  document.getElementById(id + '-qty-row').style.display = 'block';
-  document.getElementById(id + '-qty').focus();
-}
-
-function removeLineItem(id) {
-  var idx = lineItems.indexOf(id);
-  if (idx > -1) lineItems.splice(idx, 1);
-  var el = document.getElementById(id);
+function removeItem(idx) {
+  var el = document.getElementById('item-' + idx);
   if (el) el.parentNode.removeChild(el);
-  var items = document.querySelectorAll('.line-item');
-  items.forEach(function(item, i) {
-    var numEl = item.querySelector('.line-item-num');
-    if (numEl) numEl.textContent = 'Item ' + (i + 1);
-  });
-  updateItemCount();
 }
 
-function updateItemCount() {
-  var count = lineItems.length;
-  document.getElementById('item-count-lbl').textContent = '(' + count + ' item' + (count === 1 ? '' : 's') + ')';
+function searchItem(idx) {
+  clearTimeout(searchTimers[idx]);
+  var val = (document.getElementById('desc-' + idx).value || '').trim();
+  var resEl = document.getElementById('results-' + idx);
+  if (val.length < 2) { resEl.innerHTML = ''; return; }
+  resEl.innerHTML = '<div style="font-size:12px;color:#888;padding:6px 0">Searching...</div>';
+  searchTimers[idx] = setTimeout(function() {
+    var stock = document.getElementById('f-stock').value;
+    if (!stock) { resEl.innerHTML = '<div style="font-size:12px;color:#c02020;padding:6px 0">Please select stock type first.</div>'; return; }
+    fetch(GAS_URL + '?action=searchDescription', {
+      method: 'POST',
+      body: JSON.stringify({stockSheet: stock, query: val})
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res.results || !res.results.length) {
+        resEl.innerHTML = '<div style="font-size:12px;color:#888;padding:6px 0">No matching items found.</div>';
+        return;
+      }
+      resEl.innerHTML = res.results.slice(0, 3).map(function(r) {
+        return '<div class="search-result" onclick="selectResult(' + idx + ',\'' + esc(r.description) + '\',' + r.available + ')">' +
+          '<div class="sr-desc">' + esc(r.description) + ' <span style="font-size:11px;color:#888">' + esc(r.partNo) + '</span></div>' +
+          '<div class="sr-status ' + (r.available > 0 ? 'ok' : 'no') + '">' +
+            (r.available > 0 ? 'In stock: ' + r.available + ' available' : 'Not available') +
+          '</div>' +
+        '</div>';
+      }).join('');
+    })
+    .catch(function() { resEl.innerHTML = '<div style="font-size:12px;color:#c02020;padding:6px 0">Connection error.</div>'; });
+  }, 500);
 }
 
-function changeQty(id, delta) {
-  var inp = document.getElementById(id + '-qty');
-  inp.value = Math.max(1, (parseInt(inp.value) || 1) + delta);
+function selectResult(idx, desc, available) {
+  document.getElementById('desc-' + idx).value = desc;
+  var color = available > 0 ? '#065f46' : '#991b1b';
+  var msg = available > 0 ? 'In stock: ' + available + ' available' : 'Not currently available';
+  document.getElementById('results-' + idx).innerHTML =
+    '<div style="font-size:12px;font-weight:700;color:' + color + ';padding:6px 0">' + msg + '</div>';
 }
 
 function setLang(lang) {
@@ -280,13 +233,11 @@ function setLang(lang) {
   document.getElementById('btn-ar').classList.toggle('active', lang === 'ar');
   var inp = document.getElementById('f-client');
   if (lang === 'ar') {
-    inp.classList.add('inp-arabic');
-    inp.placeholder = 'اسم العميل';
     inp.setAttribute('dir', 'rtl');
+    inp.placeholder = 'name';
   } else {
-    inp.classList.remove('inp-arabic');
-    inp.placeholder = 'Client name';
     inp.removeAttribute('dir');
+    inp.placeholder = 'Client name';
   }
   inp.focus();
 }
@@ -303,14 +254,18 @@ function submitForm() {
   if (!requestor) { alert('Please enter your name.'); return; }
   if (!code)      { alert('Please enter authorization code.'); return; }
 
-  var items = [];
-  for (var i = 0; i < lineItems.length; i++) {
-    var id   = lineItems[i];
-    var desc = document.getElementById(id + '-desc').value.trim();
-    var qty  = parseInt(document.getElementById(id + '-qty').value) || 1;
+  var lineItems = [];
+  var boxes = document.querySelectorAll('.item-box');
+  for (var i = 0; i < boxes.length; i++) {
+    var box = boxes[i];
+    var descEl = box.querySelector('input[id^="desc-"]');
+    var qtyEl  = box.querySelector('input[id^="qty-"]');
+    if (!descEl) continue;
+    var desc = descEl.value.trim();
     if (!desc) { alert('Please enter description for Item ' + (i + 1) + '.'); return; }
-    items.push({description: desc, quantity: qty});
+    lineItems.push({description: desc, quantity: parseInt(qtyEl ? qtyEl.value : 1) || 1});
   }
+  if (!lineItems.length) { alert('Please add at least one item.'); return; }
 
   var btn = document.getElementById('btn-submit');
   btn.disabled = true;
@@ -318,17 +273,11 @@ function submitForm() {
 
   fetch(GAS_URL + '?action=submitMaterialRequest', {
     method: 'POST',
-    body: JSON.stringify({stockType: stock, clientName: client, doNumber: doNum, lineItems: items, requestorName: requestor, authCode: code})
+    body: JSON.stringify({stockType: stock, doNumber: doNum, clientName: client, lineItems: lineItems, requestorName: requestor, authCode: code})
   })
   .then(function(r) { return r.json(); })
   .then(function(res) {
-    if (res.ok) 
-      var summary = '<strong>Stock:</strong> ' + stock + '<br>' +
-        '<strong>Client:</strong> ' + client + '<br>' +
-        (doNum ? '<strong>D/O Number:</strong> ' + doNum + '<br>' : '') +
-        '<strong>Items:</strong><br>' +
-        items.map(function(it, i) { return (i+1) + '. ' + it.description + ' x' + it.quantity; }).join('<br>');
-      document.getElementById('success-summary').innerHTML = summary;
+    if (res.ok) {
       document.getElementById('form-section').style.display = 'none';
       document.getElementById('success-section').style.display = 'block';
     } else {
@@ -350,24 +299,21 @@ function resetForm() {
   document.getElementById('f-client').value = '';
   document.getElementById('f-requestor').value = '';
   document.getElementById('f-code').value = '';
-  document.getElementById('line-items-container').innerHTML = '';
-  lineItems = []; lineCounter = 0; currentStock = '';
+  document.getElementById('desc-0').value = '';
+  document.getElementById('qty-0').value = '1';
+  document.getElementById('results-0').innerHTML = '';
+  var boxes = document.querySelectorAll('.item-box:not(#item-0)');
+  boxes.forEach(function(b) { b.parentNode.removeChild(b); });
+  itemCount = 1;
   document.getElementById('btn-submit').disabled = false;
   document.getElementById('btn-submit').innerHTML = 'Submit Request';
   document.getElementById('form-section').style.display = 'block';
   document.getElementById('success-section').style.display = 'none';
   setLang('en');
-  addLineItem();
   window.scrollTo(0, 0);
 }
 
-function esc(s) { return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-
-window.addEventListener('load', function() {
-  lineItems.push('li-1');
-  lineCounter = 1;
-  updateItemCount();
-});
+function esc(s) { return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
 </body>
 </html>
