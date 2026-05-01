@@ -449,7 +449,9 @@ function confirmAllDispatched() {
 // ===== PICKUP =====
 function loadAtDispatch() {
   var client = document.getElementById('pickup-client').value;
-  if (!client || !currentStock) return;
+  currentStock = document.getElementById('stock-select').value;
+  if (!client) { alert('Please select a client'); return; }
+  if (!currentStock) { alert('Please select a stock type at the top'); return; }
   callGAS('getAtDispatch',{stockSheet:currentStock, clientName:client},function(res){
     atDispatchList = res.items||[];
     atDispatchConfirmed = {};
