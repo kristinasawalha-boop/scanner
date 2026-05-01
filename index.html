@@ -221,8 +221,8 @@ window.addEventListener('load', function() {
     (cfg.clients||[]).forEach(function(c) {
       var o = document.createElement('option'); o.value = o.textContent = c; psel.appendChild(o);
     });
-    nextGrv = (cfg.lastGrv||8000) + 1;
-    nextGiv = (cfg.lastGiv||8500) + 1;
+    nextGrv = (cfg.nextGRV||8001);
+    nextGiv = (cfg.nextGIV||8501);
     document.getElementById('grv-no').value = nextGrv;
     document.getElementById('pu-giv').value = nextGiv;
   });
@@ -276,7 +276,6 @@ function doReceiveScan() {
   if (!serial) { toast('Enter Serial No','err'); return; }
   var resEl = document.getElementById('receive-result');
 
-  // Check not already in session list
   if (receivedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})) {
     toast('Already added this session: '+serial,'warn');
     document.getElementById('receive-serial').value='';
@@ -390,7 +389,8 @@ function doDispatchScan() {
     return;
   }
 
-  callGAS('scanDispatch', {stockSheet:currentStock, serial:serial}, function(res) {
+  // FIX: include clientName so it gets written to the sheet
+  callGAS('scanDispatch', {stockSheet:currentStock, serial:serial, clientName:currentDispatchClient}, function(res) {
     if (res.ok && res.found) {
       dispatchedItems.push({rowIndex:res.rowIndex, serial:res.serial, partNo:res.partNo, description:res.description});
       renderDispatchedList();
