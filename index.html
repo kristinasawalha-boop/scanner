@@ -390,7 +390,7 @@ function doDispatchScan() {
     return;
   }
 
-  callGAS('lookupForDispatch', {stockSheet:currentStock, serial:serial}, function(res) {
+  callGAS('scanDispatch', {stockSheet:currentStock, serial:serial}, function(res) {
     if (res.ok && res.found) {
       dispatchedItems.push({rowIndex:res.rowIndex, serial:res.serial, partNo:res.partNo, description:res.description});
       renderDispatchedList();
