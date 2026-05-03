@@ -136,6 +136,7 @@ select.inp{appearance:auto}
     <div class="frow">
       <div class="lbl">For Client</div>
       <div id="dispatch-client-label" style="font-size:15px;font-weight:700;color:#007B7B;padding:4px 0"></div>
+      <div id="dispatch-endclient-label" style="font-size:13px;font-weight:700;color:#005a5a;padding:2px 0;display:none"></div>
     </div>
     <div class="qty-info" id="qty-info"></div>
     <div class="scan-row">
@@ -203,7 +204,7 @@ select.inp{appearance:auto}
 <div class="toast" id="toast"></div>
 
 <script>
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbzAqCgc6ylND7BIuvKFRfQxNz6Wf283r1Oq13nIDS84Cwm6d9katdf9yAwJ7pvjnmVi5A/exec';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbzxyC2gwpHPtDwxNw-5NOaHEN_Ziwq2bUPdq7mste9IMDr-GYAPfSzMVNb9mBGGCbLEnQ/exec';
 
 var currentTab = 'receive';
 var currentStock = '';
@@ -369,20 +370,23 @@ function loadRequests() {
       return '<div class="request-card">'+
         '<div class="rc-header">Request — '+esc(it.requestor)+'</div>'+
         '<div class="rc-client">'+esc(it.clientName)+'</div>'+
+        (it.endClientName?'<div style="font-size:12px;color:#007B7B;margin-bottom:4px">→ For: <strong>'+esc(it.endClientName)+'</strong></div>':'')+
         lineHtml+
         '<div class="rc-meta">'+esc(it.timestamp)+'</div>'+
-        '<button class="btn-sm" style="margin-top:8px" onclick="selectRequest(\''+esc(it.clientName)+'\',\''+lineItemsJson+'\')">Start Scanning for this Client</button>'+
+        '<button class="btn-sm" style="margin-top:8px" onclick="selectRequest(\''+esc(it.clientName)+'\',\''+esc(it.endClientName||'')+'\',\''+lineItemsJson+'\')">Start Scanning for this Client</button>'+
       '</div>';
     }).join('');
   });
 }
 
-function selectRequest(clientName, lineItemsJson) {
+function selectRequest(clientName, endClientName, lineItemsJson) {
   currentDispatchClient = clientName;
   try { currentRequestLineItems = JSON.parse(lineItemsJson); } catch(e) { currentRequestLineItems = []; }
   document.getElementById('dispatch-client-label').textContent = clientName;
+  // Show locked end client
+  var ecEl = document.getElementById('dispatch-endclient-label');
+  if (ecEl) { ecEl.textContent = endClientName ? '→ For: ' + endClientName : ''; ecEl.style.display = endClientName ? 'block' : 'none'; }
   document.getElementById('dispatch-scan-card').style.display='block';
-  // Show quantity summary
   if (currentRequestLineItems.length) {
     var qInfo = document.getElementById('qty-info');
     qInfo.style.display='block';
