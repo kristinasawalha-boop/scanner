@@ -8,7 +8,6 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f7f7;color:#111;min-height:100vh}
 .hdr{background:#007B7B;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
-.hdr img{height:36px;width:auto}
 .hdr-text{display:flex;flex-direction:column}
 .hdr-title{font-size:16px;font-weight:700}
 .hdr-sub{font-size:11px;opacity:.65}
@@ -27,24 +26,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .inp{width:100%;padding:11px 12px;border:1.5px solid #c8dede;border-radius:8px;font-size:15px;color:#111;background:#fff;outline:none;transition:border-color .15s}
 .inp:focus{border-color:#007B7B}
 select.inp{appearance:auto}
-.btn-scan{width:100%;padding:15px;background:#007B7B;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-main{width:100%;padding:13px;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px}
 .btn-main.teal{background:#007B7B}
 .btn-main.dark{background:#005a5a}
 .btn-main.amber{background:#92660a}
 .btn-main.grey{background:#777}
+.btn-main.green{background:#065f46}
 .btn-main:disabled{background:#b0c8c8;cursor:not-allowed}
 .btn-sm{padding:8px 14px;background:#e0f2f2;border:none;border-radius:7px;color:#007B7B;font-size:13px;font-weight:700;cursor:pointer}
-.or{text-align:center;color:#bbb;font-size:12px;margin:6px 0;position:relative}
-.or::before,.or::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:#e8f0f0}
-.or::before{left:0}.or::after{right:0}
 .item-row{display:flex;align-items:flex-start;padding:9px 0;border-bottom:1px solid #e8f0f0;gap:8px}
 .item-row:last-child{border-bottom:none}
 .item-body{flex:1}
 .item-body .pn{font-size:11px;font-weight:800;color:#007B7B;text-transform:uppercase}
 .item-body .ds{font-size:13px;color:#222;font-weight:600}
 .item-body .sn{font-family:monospace;font-size:11px;color:#666}
-.item-body .ec{font-size:11px;color:#007B7B;background:#e6f5f5;padding:2px 6px;border-radius:4px;display:inline-block;margin-top:2px}
 .rm-btn{background:none;border:none;color:#c02020;font-size:18px;cursor:pointer;padding:2px 6px;flex-shrink:0}
 .tick-btn{width:30px;height:30px;border-radius:50%;border:2px solid #c8dede;background:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:transparent;transition:all .15s}
 .tick-btn.checked{background:#007B7B;border-color:#007B7B;color:#fff}
@@ -75,11 +70,16 @@ select.inp{appearance:auto}
 .empty-state{text-align:center;padding:24px 0;color:#aaa;font-size:13px}
 .scan-row{display:flex;gap:8px;margin-bottom:8px}
 .scan-row .inp{flex:1}
+.qty-info{font-size:12px;color:#007B7B;background:#e6f5f5;padding:4px 8px;border-radius:6px;margin-bottom:8px;display:none}
+@media print{
+  .hdr,.stock-bar,.tabs,.toast,.btn-main,.btn-sm,.scan-row,.rm-btn,.tick-btn{display:none!important}
+  .screen{display:block!important;padding:0!important}
+  .card{box-shadow:none;border:1px solid #ccc;margin-bottom:8px}
+}
 </style>
 </head>
 <body>
 <div class="hdr">
-  <img src="data:image/jpeg;base64,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" alt="Storage Solutions JO">
   <div class="hdr-text">
     <span class="hdr-title">Storage Solutions JO</span>
     <span class="hdr-sub">Solis Inventory System</span>
@@ -137,6 +137,7 @@ select.inp{appearance:auto}
       <div class="lbl">For Client</div>
       <div id="dispatch-client-label" style="font-size:15px;font-weight:700;color:#007B7B;padding:4px 0"></div>
     </div>
+    <div class="qty-info" id="qty-info"></div>
     <div class="scan-row">
       <input class="inp" id="dispatch-serial" placeholder="Scan or type Serial No..." onkeydown="if(event.key==='Enter')doDispatchScan()">
       <button class="btn-sm" onclick="doDispatchScan()">Add</button>
@@ -144,7 +145,8 @@ select.inp{appearance:auto}
     <div id="dispatch-result"></div>
     <div id="dispatched-list"></div>
     <div id="dispatch-actions" style="display:none">
-      <button class="btn-main dark" onclick="confirmAllDispatched()">Confirm All to Dispatch</button>
+      <button class="btn-main dark" onclick="confirmAllDispatched()">✓ Confirm All to Dispatch</button>
+      <button class="btn-main green" onclick="printDispatchLabel()" style="margin-top:6px">🖨 Print Dispatch Label</button>
     </div>
   </div>
 </div>
@@ -177,7 +179,7 @@ select.inp{appearance:auto}
       <div class="lbl">License Plate *</div>
       <div class="plate-wrap">
         <input class="inp" id="pu-plate" placeholder="e.g. 12-34567">
-        <button class="btn-cam-plate" onclick="document.getElementById('plate-file').click()">Photo</button>
+        <button class="btn-cam-plate" onclick="document.getElementById('plate-file').click()">📷</button>
       </div>
       <input type="file" id="plate-file" accept="image/*" capture="environment" onchange="processPlatePhoto(this)">
     </div>
@@ -190,19 +192,23 @@ select.inp{appearance:auto}
         <option>20ft flatbed trailer</option><option>40ft container</option>
       </select>
     </div>
-    <div class="frow"><div class="lbl">GIV Number</div><input class="inp" id="pu-giv" type="number" placeholder="Auto-generated"></div>
-    <button class="btn-main dark" id="btn-confirm-pickup" onclick="submitPickup()">Confirm Pickup & Send Email</button>
+    <div class="frow"><div class="lbl">GIV Number (auto)</div><input class="inp" id="pu-giv" type="number" placeholder="Auto-generated"></div>
+    <button class="btn-main dark" id="btn-confirm-pickup" onclick="submitPickup()">Confirm Pickup & Generate GIV</button>
   </div>
 </div>
 
+<!-- PRINT AREA (hidden, shown on print) -->
+<div id="print-area" style="display:none"></div>
+
 <div class="toast" id="toast"></div>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
 <script>
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbxvbMWd49WmEREAV0GRJi3xGoo7U6silb3hQ_G-CLHiqMXpOMUHbETtA0Cpg3k1SIH_/exec';
 
 var currentTab = 'receive';
 var currentStock = '';
 var currentDispatchClient = '';
+var currentRequestLineItems = [];
 var receivedItems = [];
 var dispatchedItems = [];
 var atDispatchList = [];
@@ -249,7 +255,7 @@ function callGAS(action, params, cb) {
   fetch(GAS_URL+'?action='+action, {method:'POST', body:JSON.stringify(params)})
     .then(function(r){return r.json();})
     .then(function(d){if(cb)cb(d);})
-    .catch(function(){toast('Connection error','err');});
+    .catch(function(){toast('Connection error — check internet','err');});
 }
 
 // ===== RECEIVE =====
@@ -275,18 +281,16 @@ function doReceiveScan() {
   var serial = document.getElementById('receive-serial').value.trim();
   if (!serial) { toast('Enter Serial No','err'); return; }
   var resEl = document.getElementById('receive-result');
-
   if (receivedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})) {
     toast('Already added this session: '+serial,'warn');
     document.getElementById('receive-serial').value='';
     return;
   }
-
   callGAS('lookupSerial', {stockSheet:currentStock, serial:serial}, function(res) {
     if (res.ok && res.found) {
       receivedItems.push({rowIndex:res.rowIndex, serial:res.serial, partNo:res.partNo, description:res.description});
       renderReceivedList();
-      resEl.innerHTML = '<div class="alert-box ok">Added: '+esc(res.description)+'</div>';
+      resEl.innerHTML = '<div class="alert-box ok">✓ Added: '+esc(res.description)+'</div>';
       document.getElementById('receive-serial').value='';
       setTimeout(function(){resEl.innerHTML='';},2000);
       loadAnticipated();
@@ -317,7 +321,7 @@ function renderReceivedList() {
       (it.partNo?'<div class="pn">'+esc(it.partNo)+'</div>':'')+
       '<div class="ds">'+esc(it.description)+'</div>'+
       '<div class="sn">'+esc(it.serial)+'</div>'+
-    '</div><button class="rm-btn" onclick="receivedItems.splice('+i+',1);renderReceivedList()">x</button></div>';
+    '</div><button class="rm-btn" onclick="receivedItems.splice('+i+',1);renderReceivedList()">✕</button></div>';
   }).join('');
 }
 
@@ -328,8 +332,7 @@ function confirmAllReceived() {
   var btn = document.querySelector('#receive-actions .btn-main');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Saving...';}
   callGAS('confirmReceive', {
-    stockSheet: currentStock,
-    grvNo: grvNo,
+    stockSheet: currentStock, grvNo: grvNo,
     dateIn: document.getElementById('grv-date').value,
     remarks: document.getElementById('grv-remarks').value.trim(),
     items: receivedItems
@@ -353,26 +356,42 @@ function loadRequests() {
   callGAS('getMaterialRequests', {stockSheet:currentStock}, function(res) {
     var el = document.getElementById('requests-list');
     var items = res.items||[];
-    if (!items.length) { el.innerHTML='<div class="empty-state">No pending material requests.</div>'; document.getElementById('dispatch-scan-card').style.display='none'; return; }
+    if (!items.length) {
+      el.innerHTML='<div class="empty-state">No pending material requests.</div>';
+      document.getElementById('dispatch-scan-card').style.display='none';
+      return;
+    }
     el.innerHTML = items.map(function(it) {
       var lineHtml = (it.lineItems||[]).map(function(l){
         return '<div class="rc-item"><span class="rc-qty">'+esc(l.quantity||1)+'</span>'+esc(l.description)+'</div>';
       }).join('');
+      var lineItemsJson = esc(JSON.stringify(it.lineItems||[]));
       return '<div class="request-card">'+
-        '<div class="rc-header">Request from '+esc(it.requestor)+'</div>'+
+        '<div class="rc-header">Request — '+esc(it.requestor)+'</div>'+
         '<div class="rc-client">'+esc(it.clientName)+'</div>'+
         lineHtml+
         '<div class="rc-meta">'+esc(it.timestamp)+'</div>'+
-        '<button class="btn-sm" style="margin-top:8px" onclick="selectRequest(\''+esc(it.clientName)+'\')">Start Scanning for this Client</button>'+
+        '<button class="btn-sm" style="margin-top:8px" onclick="selectRequest(\''+esc(it.clientName)+'\',\''+lineItemsJson+'\')">Start Scanning for this Client</button>'+
       '</div>';
     }).join('');
   });
 }
 
-function selectRequest(clientName) {
+function selectRequest(clientName, lineItemsJson) {
   currentDispatchClient = clientName;
+  try { currentRequestLineItems = JSON.parse(lineItemsJson); } catch(e) { currentRequestLineItems = []; }
   document.getElementById('dispatch-client-label').textContent = clientName;
   document.getElementById('dispatch-scan-card').style.display='block';
+  // Show quantity summary
+  if (currentRequestLineItems.length) {
+    var qInfo = document.getElementById('qty-info');
+    qInfo.style.display='block';
+    qInfo.innerHTML = 'Requested: ' + currentRequestLineItems.map(function(l){
+      return l.quantity + ' × ' + l.description;
+    }).join(' | ');
+  }
+  dispatchedItems = [];
+  renderDispatchedList();
   document.getElementById('dispatch-serial').focus();
 }
 
@@ -382,26 +401,23 @@ function doDispatchScan() {
   var serial = document.getElementById('dispatch-serial').value.trim();
   if (!serial) { toast('Enter Serial No','err'); return; }
   var resEl = document.getElementById('dispatch-result');
-
   if (dispatchedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})) {
     toast('Already added: '+serial,'warn');
     document.getElementById('dispatch-serial').value='';
     return;
   }
-
-  // FIX: include clientName so it gets written to the sheet
   callGAS('scanDispatch', {stockSheet:currentStock, serial:serial, clientName:currentDispatchClient}, function(res) {
     if (res.ok && res.found) {
       dispatchedItems.push({rowIndex:res.rowIndex, serial:res.serial, partNo:res.partNo, description:res.description});
       renderDispatchedList();
-      resEl.innerHTML = '<div class="alert-box ok">Added: '+esc(res.description)+'</div>';
+      resEl.innerHTML = '<div class="alert-box ok">✓ At Dispatch: '+esc(res.description)+'</div>';
       document.getElementById('dispatch-serial').value='';
       setTimeout(function(){resEl.innerHTML='';},2000);
     } else if (res.notFound) {
       resEl.innerHTML =
         '<div class="alert-box warn">Not found in stock: '+esc(serial)+'</div>'+
-        '<button class="btn-main amber" style="margin-top:6px" onclick="sendOverride(\'dispatch\',\''+esc(serial)+'\')">Request Override from Operations</button>'+
-        '<button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Skip this item</button>';
+        '<button class="btn-main amber" style="margin-top:6px" onclick="sendOverride(\'dispatch\',\''+esc(serial)+'\')">Request Override</button>'+
+        '<button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Skip</button>';
     } else {
       resEl.innerHTML = '<div class="alert-box err">'+esc(res.msg)+'</div>';
     }
@@ -424,7 +440,7 @@ function renderDispatchedList() {
       (it.partNo?'<div class="pn">'+esc(it.partNo)+'</div>':'')+
       '<div class="ds">'+esc(it.description)+'</div>'+
       '<div class="sn">'+esc(it.serial)+'</div>'+
-    '</div><button class="rm-btn" onclick="dispatchedItems.splice('+i+',1);renderDispatchedList()">x</button></div>';
+    '</div><button class="rm-btn" onclick="dispatchedItems.splice('+i+',1);renderDispatchedList()">✕</button></div>';
   }).join('');
 }
 
@@ -433,25 +449,40 @@ function confirmAllDispatched() {
   var btn = document.querySelector('#dispatch-actions .btn-main');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Saving...';}
   callGAS('confirmDispatch', {
-    stockSheet: currentStock,
-    clientName: currentDispatchClient,
-    items: dispatchedItems
+    stockSheet: currentStock, clientName: currentDispatchClient, items: dispatchedItems
   }, function(res) {
-    if(btn){btn.disabled=false;btn.innerHTML='Confirm All to Dispatch';}
+    if(btn){btn.disabled=false;btn.innerHTML='✓ Confirm All to Dispatch';}
     if (res.ok) {
       toast(res.msg,'ok');
-      dispatchedItems=[];renderDispatchedList();
-      document.getElementById('dispatch-result').innerHTML='';
     } else { toast(res.msg,'err'); }
   });
+}
+
+function printDispatchLabel() {
+  if (!dispatchedItems.length) { toast('No items to print','err'); return; }
+  var now = new Date().toLocaleDateString('en-GB');
+  var rows = dispatchedItems.map(function(it,i){
+    return '<tr><td>'+(i+1)+'</td><td>'+(it.partNo||'')+'</td><td>'+it.description+'</td><td style="font-family:monospace">'+it.serial+'</td></tr>';
+  }).join('');
+  var html = '<html><head><style>body{font-family:Arial,sans-serif;padding:20px}h2{color:#007B7B}table{width:100%;border-collapse:collapse;margin-top:12px}th{background:#007B7B;color:#fff;padding:8px;text-align:left}td{padding:8px;border-bottom:1px solid #ddd}@media print{button{display:none}}</style></head>'+
+    '<body><h2>Storage Solutions JO — Dispatch Label</h2>'+
+    '<p><strong>Client:</strong> '+currentDispatchClient+'</p>'+
+    '<p><strong>Date:</strong> '+now+'</p>'+
+    '<p><strong>Stock:</strong> '+currentStock+'</p>'+
+    '<p><strong>Total Items:</strong> '+dispatchedItems.length+'</p>'+
+    '<table><thead><tr><th>#</th><th>Part No</th><th>Description</th><th>Serial No</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<br><p style="font-size:11px;color:#888">Generated by Solis Inventory System — Storage Solutions JO</p>'+
+    '<script>window.print();<\/script></body></html>';
+  var w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
 }
 
 // ===== PICKUP =====
 function loadAtDispatch() {
   var client = document.getElementById('pickup-client').value;
   currentStock = document.getElementById('stock-select').value;
-  if (!client) { alert('Please select a client'); return; }
-  if (!currentStock) { alert('Please select a stock type at the top'); return; }
+  if (!client || !currentStock) return;
   callGAS('getAtDispatch',{stockSheet:currentStock, clientName:client},function(res){
     atDispatchList = res.items||[];
     atDispatchConfirmed = {};
@@ -475,7 +506,7 @@ function renderAtDispatchList() {
         '<div class="sn">'+esc(it.serial)+'</div>'+
       '</div>'+
       '<button class="tick-btn'+(conf?' checked':'')+'" onclick="toggleConfirm(\''+esc(it.serial)+'\')">'+
-        (conf?'v':'')+'</button>'+
+        (conf?'✓':'')+'</button>'+
     '</div>';
   }).join('');
 }
@@ -487,7 +518,7 @@ function doPickupScan() {
   if (match) {
     atDispatchConfirmed[match.serial] = true;
     renderAtDispatchList();
-    toast('Confirmed: '+match.description,'ok');
+    toast('✓ Confirmed: '+match.description,'ok');
     document.getElementById('pickup-serial').value='';
   } else {
     toast('Not in dispatch list: '+serial,'warn');
@@ -509,7 +540,6 @@ function submitPickup() {
   if (!driver){toast('Enter driver name','err');return;}
   if (!plate){toast('Enter license plate','err');return;}
   if (!vehicle){toast('Select vehicle type','err');return;}
-  if (!givNo){toast('GIV number required','err');return;}
   var toConfirm = atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});
   if (!toConfirm.length){toast('Scan or tick at least one item','err');return;}
   setBusy('btn-confirm-pickup',true);
@@ -518,7 +548,7 @@ function submitPickup() {
     driverName:driver, licensePlate:plate, vehicleType:vehicle,
     givNo:givNo, items:toConfirm
   },function(res){
-    setBusy('btn-confirm-pickup',false,'Confirm Pickup & Send Email');
+    setBusy('btn-confirm-pickup',false,'Confirm Pickup & Generate GIV');
     if(res.ok){
       toast(res.msg,'ok');
       document.getElementById('pu-driver').value='';
@@ -541,12 +571,12 @@ function sendOverride(type, serial) {
     stockSheet:currentStock, serial:serial,
     reason:'Item not on '+(type==='receive'?'anticipated list':'stock')
   },function(res){
-    toast('Override request sent to operations','warn');
+    toast('Override request sent','warn');
     if(type==='receive'){
-      document.getElementById('receive-result').innerHTML='<div class="alert-box info">Override request sent. Continue scanning other items.</div>';
+      document.getElementById('receive-result').innerHTML='<div class="alert-box info">Override sent. Continue scanning.</div>';
       document.getElementById('receive-serial').value='';
     } else {
-      document.getElementById('dispatch-result').innerHTML='<div class="alert-box info">Override request sent. Continue scanning other items.</div>';
+      document.getElementById('dispatch-result').innerHTML='<div class="alert-box info">Override sent. Continue scanning.</div>';
       document.getElementById('dispatch-serial').value='';
     }
   });
@@ -555,11 +585,12 @@ function sendOverride(type, serial) {
 // ===== PLATE PHOTO =====
 function processPlatePhoto(input) {
   if(!input.files||!input.files[0])return;
-  Tesseract.recognize(input.files[0],'eng',{tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'})
-    .then(function(r){
-      var text=r.data.text.replace(/[^A-Z0-9\-]/gi,'').trim();
-      document.getElementById('pu-plate').value=text||'';
-    }).catch(function(){toast('OCR failed - type manually','warn');});
+  toast('Reading plate...','');
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('pu-plate').value = '(photo taken - type plate manually)';
+  };
+  reader.readAsDataURL(input.files[0]);
   input.value='';
 }
 
