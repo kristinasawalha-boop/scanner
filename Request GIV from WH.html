@@ -41,32 +41,40 @@ select.inp{appearance:auto}
 .toast.err{background:#991b1b}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .65s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+/* Suggest dropdown */
 .suggest-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #007B7B;border-radius:8px;z-index:100;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,80,80,.15);display:none}
 .suggest-list.open{display:block}
 .suggest-item{padding:11px 14px;border-bottom:1px solid #e8f0f0;cursor:pointer;font-size:14px;font-weight:600;color:#111}
 .suggest-item:last-child{border-bottom:none}
 .suggest-item:active{background:#e0f2f2}
-.search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #007B7B;border-radius:8px;z-index:100;max-height:280px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,80,80,.15);display:none}
+/* Search results */
+.search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #007B7B;border-radius:8px;z-index:100;max-height:300px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,80,80,.18);display:none}
 .search-results.open{display:block}
-.search-item{padding:12px 14px;border-bottom:1px solid #e8f0f0;cursor:pointer}
+.search-item{padding:13px 14px;border-bottom:1px solid #e8f0f0;cursor:pointer}
 .search-item:last-child{border-bottom:none}
 .search-item:active{background:#e0f2f2}
-.search-item .si-desc{font-size:14px;font-weight:600;color:#111}
-.search-item .si-avail{font-size:12px;margin-top:3px}
-.search-item .avail{color:#065f46;font-weight:700}
-.search-item .total{color:#888}
-.searching{padding:12px 14px;font-size:13px;color:#888;text-align:center}
-.qty-row{display:flex;align-items:flex-end;gap:10px;margin-top:10px}
-.qty-row .inp{width:100px}
-.qty-row .btn-add{padding:12px 18px;background:#007B7B;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+.search-item .si-desc{font-size:14px;font-weight:700;color:#111}
+.search-item .si-avail{font-size:12px;margin-top:4px}
+.search-item .avail{color:#065f46;font-weight:800}
+.search-item .total{color:#aaa}
+.search-item.none .si-desc{color:#999}
+.searching{padding:14px;font-size:13px;color:#888;text-align:center}
+/* Selected item */
+.selected-box{background:#e6f5f5;border:1.5px solid #007B7B;border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.selected-box .sd{font-size:14px;font-weight:700;color:#007B7B}
+.selected-box .sa{font-size:12px;color:#065f46;font-weight:700;margin-top:2px}
+.qty-row{display:flex;align-items:flex-end;gap:10px}
+.qty-row .qty-inp{width:100px;padding:12px;border:1.5px solid #c8dede;border-radius:8px;font-size:16px;color:#111;outline:none}
+.qty-row .qty-inp:focus{border-color:#007B7B}
+.qty-row .btn-add{padding:12px 20px;background:#007B7B;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+/* View requests */
 .req-row{background:#f8fffe;border:1.5px solid #c8dede;border-radius:10px;padding:12px;margin-bottom:8px}
 .req-stock{font-size:11px;color:#007B7B;font-weight:700;text-transform:uppercase;margin-bottom:2px}
-.req-client{font-size:16px;font-weight:700;color:#111;margin-bottom:6px}
-.req-endclient{font-size:13px;color:#555;margin-bottom:4px}
+.req-client{font-size:16px;font-weight:700;color:#111;margin-bottom:2px}
+.req-deliver{font-size:13px;color:#555;margin-bottom:6px}
 .req-item{font-size:13px;color:#444;padding:2px 0}
 .req-qty-badge{display:inline-block;background:#007B7B;color:#fff;border-radius:5px;padding:1px 7px;font-size:12px;font-weight:700;margin-right:5px}
 .req-meta{font-size:11px;color:#888;margin-top:6px}
-.locked-field{background:#f0f7f7;border:1.5px solid #a0d4d4;border-radius:8px;padding:12px;font-size:15px;font-weight:700;color:#007B7B}
 </style>
 </head>
 <body>
@@ -92,55 +100,50 @@ select.inp{appearance:auto}
     </div>
 
     <div class="frow">
-      <div class="lbl">Your Client (company requesting) *</div>
-      <select class="inp" id="req-client">
-        <option value="">-- select --</option>
-      </select>
-    </div>
-
-    <!-- End client: free text with auto-suggest from past entries -->
-    <div class="frow">
-      <div class="lbl">Their Client (end destination) *</div>
+      <div class="lbl">Deliver To (Solis Client) *</div>
       <div style="position:relative">
-        <input class="inp" id="req-endclient" placeholder="Type end client name..." oninput="onEndClientInput()" autocomplete="off">
+        <input class="inp" id="req-endclient" placeholder="Type destination name..." oninput="onEndClientInput()" autocomplete="off">
         <div class="suggest-list" id="endclient-suggest"></div>
       </div>
-      <div style="font-size:11px;color:#888;margin-top:4px">This is locked and cannot be changed by warehouse</div>
+      <div style="font-size:11px;color:#888;margin-top:4px">⚠ Locked — warehouse cannot change this</div>
     </div>
 
-    <div class="frow">
-      <div class="lbl">D/O Number</div>
-      <input class="inp" id="req-do" placeholder="Optional">
-    </div>
-
-    <div class="frow">
-      <div class="lbl">Your Name *</div>
-      <input class="inp" id="req-name" placeholder="e.g. Nancy">
+    <div class="frow" style="display:flex;gap:10px">
+      <div style="flex:1">
+        <div class="lbl">Ordered By *</div>
+        <input class="inp" id="req-name" placeholder="Staff name">
+      </div>
+      <div style="width:120px">
+        <div class="lbl">Staff Code *</div>
+        <input class="inp" id="req-staffcode" placeholder="e.g. M01">
+      </div>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-title">Add Items <span class="badge" id="item-count">0</span></div>
+    <div class="card-title">Items <span class="badge" id="item-count">0</span></div>
 
-    <div class="lbl">Search Description</div>
     <div class="frow" style="position:relative">
-      <input class="inp" id="desc-search" placeholder="Type to search (e.g. HYS, battery, inverter...)" oninput="onSearchInput()" autocomplete="off">
+      <div class="lbl">Search Item</div>
+      <input class="inp" id="desc-search" placeholder="Type to search — e.g. battery, HYS, inverter..." oninput="onSearchInput()" autocomplete="off">
       <div class="search-results" id="search-results"></div>
     </div>
 
-    <div id="selected-item-row" style="display:none">
-      <div class="lbl">Selected</div>
-      <div id="selected-item-name" style="font-size:14px;font-weight:700;color:#007B7B;padding:8px 0;border-bottom:1px solid #e8f0f0;margin-bottom:10px"></div>
+    <div id="selected-item-row" style="display:none;margin-bottom:10px">
+      <div class="selected-box">
+        <div class="sd" id="selected-item-name"></div>
+        <div class="sa" id="selected-item-avail"></div>
+      </div>
       <div class="qty-row">
         <div>
           <div class="lbl">Quantity</div>
-          <input class="inp" id="item-qty" type="number" min="1" placeholder="Qty">
+          <input class="qty-inp" id="item-qty" type="number" min="1" placeholder="Qty" onkeydown="if(event.key==='Enter')addItem()">
         </div>
-        <button class="btn-add" onclick="addItem()">+ Add</button>
+        <button class="btn-add" onclick="addItem()">+ Add Item</button>
       </div>
     </div>
 
-    <div id="items-list" style="margin-top:12px"></div>
+    <div id="items-list"></div>
   </div>
 
   <div id="submit-result"></div>
@@ -151,7 +154,9 @@ select.inp{appearance:auto}
 <div class="screen" id="screen-view">
   <div style="padding-top:4px">
     <button class="btn-sm" onclick="loadRequests()">↻ Refresh</button>
-    <div id="req-list" style="margin-top:10px"><div style="text-align:center;padding:24px;color:#aaa;font-size:13px">Tap Refresh to load</div></div>
+    <div id="req-list" style="margin-top:12px">
+      <div style="text-align:center;padding:24px;color:#aaa;font-size:13px">Tap Refresh to load</div>
+    </div>
   </div>
 </div>
 
@@ -160,6 +165,7 @@ select.inp{appearance:auto}
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbzxyC2gwpHPtDwxNw-5NOaHEN_Ziwq2bUPdq7mste9IMDr-GYAPfSzMVNb9mBGGCbLEnQ/exec';
 var lineItems = [];
 var selectedDesc = '';
+var selectedAvail = 0;
 var searchTimer = null;
 var endClientHistory = JSON.parse(localStorage.getItem('ssolsEndClients') || '[]');
 
@@ -169,10 +175,7 @@ window.addEventListener('load', function() {
     (cfg.stockSheets||[]).forEach(function(s) {
       var o = document.createElement('option'); o.value = o.textContent = s; ss.appendChild(o);
     });
-    var sc = document.getElementById('req-client');
-    (cfg.clients||[]).forEach(function(c) {
-      var o = document.createElement('option'); o.value = o.textContent = c; sc.appendChild(o);
-    });
+
   });
 });
 
@@ -205,7 +208,7 @@ function onStockChange() {
   document.getElementById('search-results').classList.remove('open');
 }
 
-// End client auto-suggest from saved history
+// Deliver To auto-suggest
 function onEndClientInput() {
   var val = document.getElementById('req-endclient').value.trim().toLowerCase();
   var el = document.getElementById('endclient-suggest');
@@ -232,7 +235,7 @@ function saveEndClient(name) {
   }
 }
 
-// Description live search
+// Live description search
 function onSearchInput() {
   clearTimeout(searchTimer);
   var q = document.getElementById('desc-search').value.trim();
@@ -245,53 +248,61 @@ function onSearchInput() {
     callGAS('searchDescription', {stockSheet: stock, query: q}, function(res) {
       renderSearchResults(res.results || []);
     });
-  }, 350);
+  }, 300);
 }
 
 function renderSearchResults(results) {
   var el = document.getElementById('search-results');
-  if (!results.length) { el.innerHTML='<div class="searching">No matches found</div>'; el.classList.add('open'); return; }
+  if (!results.length) {
+    el.innerHTML = '<div class="searching">No matches found</div>';
+    el.classList.add('open');
+    return;
+  }
   el.innerHTML = results.map(function(r) {
     var noStock = r.available === 0;
-    return '<div class="search-item" onclick="selectItem(\''+esc(r.description)+'\','+r.available+')">'+
+    return '<div class="search-item'+(noStock?' none':'')+'" onclick="selectItem(\''+esc(r.description)+'\','+r.available+','+r.total+')">'+
       '<div class="si-desc">'+esc(r.description)+'</div>'+
       '<div class="si-avail">'+
-        '<span class="avail">'+r.available+' available</span> <span class="total">/ '+r.total+' total</span>'+
-        (noStock?' — <span style="color:#991b1b;font-weight:700">None in stock</span>':'')+
+        '<span class="avail">'+r.available+' available</span>'+
+        ' <span class="total">of '+r.total+' total</span>'+
+        (noStock?' &nbsp;— <span style="color:#991b1b;font-weight:700">None in stock</span>':'')+
       '</div>'+
     '</div>';
   }).join('');
   el.classList.add('open');
 }
 
-function selectItem(desc, available) {
+function selectItem(desc, available, total) {
   selectedDesc = desc;
+  selectedAvail = available;
   document.getElementById('desc-search').value = desc;
   document.getElementById('search-results').classList.remove('open');
-  document.getElementById('selected-item-name').textContent = desc + ' — ' + available + ' available';
+  document.getElementById('selected-item-name').textContent = desc;
+  document.getElementById('selected-item-avail').textContent = available + ' available in stock';
   document.getElementById('selected-item-row').style.display = 'block';
   document.getElementById('item-qty').value = '';
   document.getElementById('item-qty').focus();
 }
 
 function addItem() {
-  if (!selectedDesc) { toast('Select an item first','err'); return; }
+  if (!selectedDesc) { toast('Search and select an item first','err'); return; }
   var qty = parseInt(document.getElementById('item-qty').value);
   if (!qty || qty < 1) { toast('Enter a valid quantity','err'); return; }
   lineItems.push({description: selectedDesc, quantity: qty});
   selectedDesc = '';
+  selectedAvail = 0;
   document.getElementById('desc-search').value = '';
   document.getElementById('item-qty').value = '';
   document.getElementById('selected-item-row').style.display = 'none';
   renderItems();
-  toast('Item added','ok');
+  toast('Item added ✓','ok');
 }
 
 function renderItems() {
   var el = document.getElementById('items-list');
   document.getElementById('item-count').textContent = lineItems.length;
-  if (!lineItems.length) { el.innerHTML=''; return; }
-  el.innerHTML = lineItems.map(function(it,i){
+  if (!lineItems.length) { el.innerHTML = ''; return; }
+  el.innerHTML = lineItems.map(function(it, i) {
     return '<div class="item-row"><div class="item-body">'+
       '<div class="ds">'+esc(it.description)+'</div>'+
       '<div class="qty">Qty: '+it.quantity+'</div>'+
@@ -301,62 +312,79 @@ function renderItems() {
 
 function submitRequest() {
   var stock     = document.getElementById('req-stock').value;
-  var client    = document.getElementById('req-client').value;
   var endclient = document.getElementById('req-endclient').value.trim();
   var name      = document.getElementById('req-name').value.trim();
-  var doNo      = document.getElementById('req-do').value.trim();
+  var staffCode = document.getElementById('req-staffcode').value.trim();
   if (!stock)     { toast('Select stock type','err'); return; }
-  if (!client)    { toast('Select your client','err'); return; }
-  if (!endclient) { toast('Enter their end client name','err'); return; }
-  if (!name)      { toast('Enter your name','err'); return; }
+
+  if (!endclient) { toast('Enter Deliver To destination','err'); return; }
+  if (!name)      { toast('Enter staff name','err'); return; }
+  if (!staffCode) { toast('Enter staff code','err'); return; }
   if (!lineItems.length) { toast('Add at least one item','err'); return; }
 
   var btn = document.getElementById('btn-submit');
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Submitting...';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Submitting...';
 
   callGAS('submitMaterialRequest', {
-    stockType: stock,
-    clientName: client,
+    stockType:     stock,
+    clientName:    endclient,
     endClientName: endclient,
-    doNumber: doNo,
+    doNumber:      staffCode,
     requestorName: name,
-    lineItems: lineItems
+    lineItems:     lineItems
   }, function(res) {
-    btn.disabled = false; btn.innerHTML = 'Submit Material Request';
+    btn.disabled = false;
+    btn.innerHTML = 'Submit Material Request';
     if (res.ok) {
       saveEndClient(endclient);
-      document.getElementById('submit-result').innerHTML = '<div class="alert-box ok">✓ Request submitted! Operations has been notified.</div>';
-      lineItems = []; renderItems();
-      document.getElementById('req-do').value = '';
+      document.getElementById('submit-result').innerHTML =
+        '<div class="alert-box ok">✓ Request submitted! Operations has been notified.</div>';
+      lineItems = [];
+      renderItems();
+      document.getElementById('req-staffcode').value = '';
       document.getElementById('req-endclient').value = '';
-      setTimeout(function(){ document.getElementById('submit-result').innerHTML=''; }, 5000);
-    } else { toast(res.msg||'Error','err'); }
+      document.getElementById('req-name').value = '';
+      setTimeout(function(){ document.getElementById('submit-result').innerHTML = ''; }, 5000);
+    } else {
+      toast(res.msg || 'Error submitting','err');
+    }
   });
 }
 
 function loadRequests() {
   var stock = document.getElementById('req-stock').value;
-  document.getElementById('req-list').innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">Loading...</div>';
+  document.getElementById('req-list').innerHTML =
+    '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">Loading...</div>';
   callGAS('getMaterialRequests', {stockSheet: stock||''}, function(res) {
     var el = document.getElementById('req-list');
-    var items = res.items||[];
-    if (!items.length) { el.innerHTML='<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">No pending requests.</div>'; return; }
-    el.innerHTML = items.map(function(it){
+    var items = res.items || [];
+    if (!items.length) {
+      el.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">No pending requests.</div>';
+      return;
+    }
+    el.innerHTML = items.map(function(it) {
       var lines = (it.lineItems||[]).map(function(l){
         return '<div class="req-item"><span class="req-qty-badge">'+l.quantity+'</span>'+esc(l.description)+'</div>';
       }).join('');
       return '<div class="req-row">'+
         '<div class="req-stock">'+esc(it.stockType)+'</div>'+
         '<div class="req-client">'+esc(it.clientName)+'</div>'+
-        (it.endClientName?'<div class="req-endclient">→ For: '+esc(it.endClientName)+'</div>':'')+
-        lines+'<div class="req-meta">By '+esc(it.requestor)+' — '+esc(it.timestamp)+'</div>'+
+        (it.endClientName ? '<div class="req-deliver">📦 Deliver to (Solis Client): <strong>'+esc(it.endClientName)+'</strong></div>' : '')+
+        lines+
+        '<div class="req-meta">By '+esc(it.requestor)+' — '+esc(it.timestamp)+'</div>'+
       '</div>';
     }).join('');
   });
 }
 
-function toast(msg,type){var el=document.getElementById('toast');el.textContent=msg;el.className='toast '+(type||'')+' show';setTimeout(function(){el.classList.remove('show');},3000);}
-function esc(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg,type){
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast '+(type||'')+' show';
+  setTimeout(function(){ el.classList.remove('show'); }, 3000);
+}
+function esc(s){ return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
 </body>
 </html>
