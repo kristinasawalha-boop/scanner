@@ -506,16 +506,16 @@ function loadEndClients() {
 
 function loadAtDispatch() {
   var client = document.getElementById('pickup-client').value;
-  currentStock = document.getElementById('stock-select').value;
-  if (!client || !currentStock) return;
-  callGAS('getAtDispatch',{stockSheet:currentStock, clientName:client},function(res){
-    atDispatchList = res.items||[];
+  if (!client) return;
+  callGAS('getAtDispatchAll', {clientName: client}, function(res) {
+    atDispatchList = res.items || [];
     atDispatchConfirmed = {};
     renderAtDispatchList();
     var hasItems = atDispatchList.length > 0;
-    document.getElementById('at-dispatch-card').style.display = hasItems ? 'block':'none';
-    document.getElementById('pickup-details-card').style.display = hasItems ? 'block':'none';
+    document.getElementById('at-dispatch-card').style.display = hasItems ? 'block' : 'none';
+    document.getElementById('pickup-details-card').style.display = hasItems ? 'block' : 'none';
     document.getElementById('dispatch-count').textContent = atDispatchList.length;
+    if (!hasItems) toast('No items at dispatch for this client', 'warn');
   });
 }
 
@@ -594,24 +594,38 @@ function submitPickup() {
   var toConfirm = atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});
   if (!toConfirm.length){toast('Scan or tick at least one item','err');return;}
   setBusy('btn-confirm-pickup',true);
-  callGAS('confirmPickup',{
-    stockSheet:currentStock, clientName:client,
-    driverName:driver, licensePlate:plate, vehicleType:vehicle,
-    givNo:givNo, items:toConfirm
-  },function(res){
-    setBusy('btn-confirm-pickup',false,'Confirm Pickup & Generate GIV');
-    if(res.ok){
-      toast(res.msg,'ok');
-      document.getElementById('pu-driver').value='';
-      document.getElementById('pu-plate').value='';
-      document.getElementById('pu-vehicle').value='';
-      nextGiv++;
-      document.getElementById('pu-giv').value=nextGiv;
-      atDispatchConfirmed={};atDispatchList=[];
-      renderAtDispatchList();
-      document.getElementById('at-dispatch-card').style.display='none';
-      document.getElementById('pickup-details-card').style.display='none';
-    } else { toast(res.msg,'err'); }
+  // Group items by stock sheet
+  var sheetGroups = {};
+  toConfirm.forEach(function(it) {
+    var s = it.stockSheet || currentStock;
+    if (!sheetGroups[s]) sheetGroups[s] = [];
+    sheetGroups[s].push(it);
+  });
+  var sheets = Object.keys(sheetGroups);
+  var completed = 0;
+  var lastMsg = '';
+  sheets.forEach(function(sheet) {
+    callGAS('confirmPickup', {
+      stockSheet: sheet, clientName: client,
+      driverName: driver, licensePlate: plate, vehicleType: vehicle,
+      givNo: givNo, items: sheetGroups[sheet]
+    }, function(res) {
+      completed++;
+      if (res.ok) lastMsg = res.msg;
+      if (completed === sheets.length) {
+        setBusy('btn-confirm-pickup', false, 'Confirm Pickup & Generate GIV');
+        toast(lastMsg || 'GIV confirmed', 'ok');
+        document.getElementById('pu-driver').value='';
+        document.getElementById('pu-plate').value='';
+        document.getElementById('pu-vehicle').value='';
+        nextGiv++;
+        document.getElementById('pu-giv').value=nextGiv;
+        atDispatchConfirmed={};atDispatchList=[];
+        renderAtDispatchList();
+        document.getElementById('at-dispatch-card').style.display='none';
+        document.getElementById('pickup-details-card').style.display='none';
+      }
+    });
   });
 }
 
