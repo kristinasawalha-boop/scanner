@@ -519,31 +519,7 @@ function loadAtDispatch() {
   });
 }
 
-function loadEndClients() {
-  currentStock = document.getElementById('stock-select').value;
-  if (!currentStock) return;
-  callGAS('getMaterialRequests', {stockSheet: currentStock}, function(res) {
-    var items = res.items || [];
-    var seen = {};
-    var names = [];
-    items.forEach(function(it) {
-      var name = it.endClientName || it.clientName || '';
-      if (name && !seen[name.toLowerCase()]) {
-        seen[name.toLowerCase()] = true;
-        names.push(name);
-      }
-    });
-    var sel = document.getElementById('pickup-client');
-    var current = sel.value;
-    sel.innerHTML = '<option value="">-- select destination --</option>';
-    names.forEach(function(n) {
-      var o = document.createElement('option');
-      o.value = o.textContent = n;
-      if (n === current) o.selected = true;
-      sel.appendChild(o);
-    });
-  });
-}
+
 
 function renderAtDispatchList() {
   var el = document.getElementById('at-dispatch-list');
