@@ -85,7 +85,7 @@ select.inp{appearance:auto}
     <span class="hdr-sub">Solis Inventory System</span>
   </div>
 </div>
-<div class="stock-bar">
+<div class="stock-bar" id="stock-bar">
   <label>Stock:</label>
   <select class="stock-sel" id="stock-select" onchange="onStockChange()">
     <option value="">-- select stock type --</option>
@@ -245,8 +245,10 @@ function switchTab(tab) {
     document.getElementById('tab-'+t).classList.toggle('active', t===tab);
     document.getElementById('screen-'+t).classList.toggle('active', t===tab);
   });
+  // Hide stock bar on pickup tab - not needed there
+  document.getElementById('stock-bar').style.display = (tab === 'pickup') ? 'none' : 'flex';
   if (tab==='dispatch' && currentStock) loadRequests();
-  if (tab==='pickup') loadAtDispatch();
+  if (tab==='pickup') loadEndClients();
 }
 
 function callGAS(action, params, cb) {
@@ -501,6 +503,8 @@ function loadEndClients() {
       if (c === current) o.selected = true;
       sel.appendChild(o);
     });
+    // If previously selected client is still in list, reload their items
+    if (current && clients.indexOf(current) >= 0) loadAtDispatch();
   });
 }
 
