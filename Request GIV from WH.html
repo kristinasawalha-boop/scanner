@@ -21,7 +21,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .frow{margin-bottom:12px;position:relative}
 .inp{width:100%;padding:12px;border:1.5px solid #c8dede;border-radius:8px;font-size:15px;color:#111;background:#fff;outline:none;transition:border-color .15s}
 .inp:focus{border-color:#007B7B}
-select.inp{appearance:auto}
 .btn-main{width:100%;padding:14px;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
 .btn-main.dark{background:#005a5a}
 .btn-main:disabled{background:#b0c8c8;cursor:not-allowed}
@@ -30,7 +29,8 @@ select.inp{appearance:auto}
 .item-row:last-child{border-bottom:none}
 .item-body{flex:1}
 .item-body .ds{font-size:14px;font-weight:600;color:#111}
-.item-body .qty{font-size:12px;color:#007B7B;font-weight:700;margin-top:2px}
+.item-body .ss{font-size:11px;color:#007B7B;font-weight:700;margin-top:2px}
+.item-body .qty{font-size:12px;color:#555;margin-top:2px}
 .rm-btn{background:none;border:none;color:#c02020;font-size:20px;cursor:pointer;padding:2px 8px;flex-shrink:0}
 .badge{display:inline-block;background:#007B7B;color:#fff;border-radius:20px;padding:1px 9px;font-size:12px;font-weight:700;margin-left:6px}
 .alert-box{border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:13px;font-weight:600}
@@ -41,40 +41,33 @@ select.inp{appearance:auto}
 .toast.err{background:#991b1b}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .65s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-/* Suggest dropdown */
 .suggest-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #007B7B;border-radius:8px;z-index:100;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,80,80,.15);display:none}
 .suggest-list.open{display:block}
 .suggest-item{padding:11px 14px;border-bottom:1px solid #e8f0f0;cursor:pointer;font-size:14px;font-weight:600;color:#111}
-.suggest-item:last-child{border-bottom:none}
 .suggest-item:active{background:#e0f2f2}
-/* Search results */
 .search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #007B7B;border-radius:8px;z-index:100;max-height:300px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,80,80,.18);display:none}
 .search-results.open{display:block}
 .search-item{padding:13px 14px;border-bottom:1px solid #e8f0f0;cursor:pointer}
-.search-item:last-child{border-bottom:none}
 .search-item:active{background:#e0f2f2}
 .search-item .si-desc{font-size:14px;font-weight:700;color:#111}
-.search-item .si-avail{font-size:12px;margin-top:4px}
+.search-item .si-stock{font-size:11px;color:#007B7B;font-weight:700;margin-top:2px}
+.search-item .si-avail{font-size:12px;margin-top:3px}
 .search-item .avail{color:#065f46;font-weight:800}
 .search-item .total{color:#aaa}
-.search-item.none .si-desc{color:#999}
 .searching{padding:14px;font-size:13px;color:#888;text-align:center}
-/* Selected item */
 .selected-box{background:#e6f5f5;border:1.5px solid #007B7B;border-radius:8px;padding:10px 12px;margin-bottom:10px}
 .selected-box .sd{font-size:14px;font-weight:700;color:#007B7B}
+.selected-box .ss{font-size:11px;color:#005a5a;font-weight:700;margin-top:2px}
 .selected-box .sa{font-size:12px;color:#065f46;font-weight:700;margin-top:2px}
 .qty-row{display:flex;align-items:flex-end;gap:10px}
-.qty-row .qty-inp{width:100px;padding:12px;border:1.5px solid #c8dede;border-radius:8px;font-size:16px;color:#111;outline:none}
-.qty-row .qty-inp:focus{border-color:#007B7B}
-.qty-row .btn-add{padding:12px 20px;background:#007B7B;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
-/* View requests */
+.qty-inp{width:100px;padding:12px;border:1.5px solid #c8dede;border-radius:8px;font-size:16px;color:#111;outline:none}
+.qty-inp:focus{border-color:#007B7B}
+.btn-add{padding:12px 20px;background:#007B7B;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
 .req-row{background:#f8fffe;border:1.5px solid #c8dede;border-radius:10px;padding:12px;margin-bottom:8px}
-.req-stock{font-size:11px;color:#007B7B;font-weight:700;text-transform:uppercase;margin-bottom:2px}
-.req-client{font-size:16px;font-weight:700;color:#111;margin-bottom:2px}
-.req-deliver{font-size:13px;color:#555;margin-bottom:6px}
+.req-deliver{font-size:16px;font-weight:700;color:#111;margin-bottom:2px}
+.req-meta{font-size:11px;color:#888;margin-top:6px}
 .req-item{font-size:13px;color:#444;padding:2px 0}
 .req-qty-badge{display:inline-block;background:#007B7B;color:#fff;border-radius:5px;padding:1px 7px;font-size:12px;font-weight:700;margin-right:5px}
-.req-meta{font-size:11px;color:#888;margin-top:6px}
 </style>
 </head>
 <body>
@@ -87,22 +80,14 @@ select.inp{appearance:auto}
   <div class="tab"        id="tab-view" onclick="switchTab('view')">View Requests</div>
 </div>
 
-<!-- NEW REQUEST -->
 <div class="screen active" id="screen-new">
   <div class="card">
     <div class="card-title">Request Details</div>
 
     <div class="frow">
-      <div class="lbl">Stock Type *</div>
-      <select class="inp" id="req-stock" onchange="onStockChange()">
-        <option value="">-- select stock type --</option>
-      </select>
-    </div>
-
-    <div class="frow">
       <div class="lbl">Deliver To (Solis Client) *</div>
       <div style="position:relative">
-        <input class="inp" id="req-endclient" placeholder="Type destination name..." oninput="onEndClientInput()" autocomplete="off">
+        <input class="inp" id="req-endclient" placeholder="Type client name..." oninput="onEndClientInput()" autocomplete="off">
         <div class="suggest-list" id="endclient-suggest"></div>
       </div>
       <div style="font-size:11px;color:#888;margin-top:4px">⚠ Locked — warehouse cannot change this</div>
@@ -111,20 +96,20 @@ select.inp{appearance:auto}
     <div class="frow" style="display:flex;gap:10px">
       <div style="flex:1">
         <div class="lbl">Ordered By *</div>
-        <input class="inp" id="req-name" placeholder="Staff name">
+        <input class="inp" id="req-name" placeholder="Staff name" autocomplete="off">
       </div>
       <div style="width:120px">
         <div class="lbl">Staff Code *</div>
-        <input class="inp" id="req-staffcode" placeholder="e.g. M01">
+        <input class="inp" id="req-staffcode" placeholder="e.g. M01" autocomplete="off">
       </div>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-title">Items <span class="badge" id="item-count">0</span></div>
+    <div class="card-title">Add Items <span class="badge" id="item-count">0</span></div>
 
     <div class="frow" style="position:relative">
-      <div class="lbl">Search Item</div>
+      <div class="lbl">Search Item (any stock)</div>
       <input class="inp" id="desc-search" placeholder="Type to search — e.g. battery, HYS, inverter..." oninput="onSearchInput()" autocomplete="off">
       <div class="search-results" id="search-results"></div>
     </div>
@@ -132,6 +117,7 @@ select.inp{appearance:auto}
     <div id="selected-item-row" style="display:none;margin-bottom:10px">
       <div class="selected-box">
         <div class="sd" id="selected-item-name"></div>
+        <div class="ss" id="selected-item-stock"></div>
         <div class="sa" id="selected-item-avail"></div>
       </div>
       <div class="qty-row">
@@ -150,7 +136,6 @@ select.inp{appearance:auto}
   <button class="btn-main dark" id="btn-submit" onclick="submitRequest()">Submit Material Request</button>
 </div>
 
-<!-- VIEW REQUESTS -->
 <div class="screen" id="screen-view">
   <div style="padding-top:4px">
     <button class="btn-sm" onclick="loadRequests()">↻ Refresh</button>
@@ -162,22 +147,13 @@ select.inp{appearance:auto}
 
 <div class="toast" id="toast"></div>
 <script>
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbyqEnAUgIdlg-SM3mcVW3039tbml11F2sy2KgBSsKMrWmi6xVZjxGQqLYv9l6TwEExu/exec';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbyPkUA0DlZ30dtv7Y3HIPlCGyykoomRJoJOnV1QN2IJQJtBNzaYmFhspzWYekgW6xrd5Q/exec';
 var lineItems = [];
 var selectedDesc = '';
+var selectedStock = '';
 var selectedAvail = 0;
 var searchTimer = null;
 var endClientHistory = JSON.parse(localStorage.getItem('ssolsEndClients') || '[]');
-
-window.addEventListener('load', function() {
-  callGAS('getConfig', {}, function(cfg) {
-    var ss = document.getElementById('req-stock');
-    (cfg.stockSheets||[]).forEach(function(s) {
-      var o = document.createElement('option'); o.value = o.textContent = s; ss.appendChild(o);
-    });
-
-  });
-});
 
 document.addEventListener('click', function(e) {
   if (!e.target.closest('#desc-search') && !e.target.closest('#search-results'))
@@ -201,14 +177,6 @@ function callGAS(action, params, cb) {
     .catch(function(){toast('Connection error','err');});
 }
 
-function onStockChange() {
-  selectedDesc = '';
-  document.getElementById('desc-search').value = '';
-  document.getElementById('selected-item-row').style.display = 'none';
-  document.getElementById('search-results').classList.remove('open');
-}
-
-// Deliver To auto-suggest
 function onEndClientInput() {
   var val = document.getElementById('req-endclient').value.trim().toLowerCase();
   var el = document.getElementById('endclient-suggest');
@@ -227,25 +195,20 @@ function pickEndClient(name) {
 }
 
 function saveEndClient(name) {
-  if (!name) return;
-  if (endClientHistory.indexOf(name) < 0) {
-    endClientHistory.unshift(name);
-    if (endClientHistory.length > 50) endClientHistory = endClientHistory.slice(0,50);
-    localStorage.setItem('ssolsEndClients', JSON.stringify(endClientHistory));
-  }
+  if (!name || endClientHistory.indexOf(name) >= 0) return;
+  endClientHistory.unshift(name);
+  if (endClientHistory.length > 50) endClientHistory = endClientHistory.slice(0,50);
+  localStorage.setItem('ssolsEndClients', JSON.stringify(endClientHistory));
 }
 
-// Live description search
 function onSearchInput() {
   clearTimeout(searchTimer);
   var q = document.getElementById('desc-search').value.trim();
-  var stock = document.getElementById('req-stock').value;
-  if (!stock) { toast('Select stock type first','err'); document.getElementById('desc-search').value=''; return; }
   if (q.length < 2) { document.getElementById('search-results').classList.remove('open'); return; }
-  document.getElementById('search-results').innerHTML = '<div class="searching">Searching...</div>';
+  document.getElementById('search-results').innerHTML = '<div class="searching">Searching all stocks...</div>';
   document.getElementById('search-results').classList.add('open');
   searchTimer = setTimeout(function() {
-    callGAS('searchDescription', {stockSheet: stock, query: q}, function(res) {
+    callGAS('searchDescription', {query: q}, function(res) {
       renderSearchResults(res.results || []);
     });
   }, 300);
@@ -253,31 +216,29 @@ function onSearchInput() {
 
 function renderSearchResults(results) {
   var el = document.getElementById('search-results');
-  if (!results.length) {
-    el.innerHTML = '<div class="searching">No matches found</div>';
-    el.classList.add('open');
-    return;
-  }
+  if (!results.length) { el.innerHTML='<div class="searching">No matches found</div>'; el.classList.add('open'); return; }
   el.innerHTML = results.map(function(r) {
     var noStock = r.available === 0;
-    return '<div class="search-item'+(noStock?' none':'')+'" onclick="selectItem(\''+esc(r.description)+'\','+r.available+','+r.total+')">'+
+    return '<div class="search-item" onclick="selectItem(\''+esc(r.description)+'\',\''+esc(r.stockSheet)+'\','+r.available+','+r.total+')">'+
       '<div class="si-desc">'+esc(r.description)+'</div>'+
+      '<div class="si-stock">'+esc(r.stockSheet)+'</div>'+
       '<div class="si-avail">'+
-        '<span class="avail">'+r.available+' available</span>'+
-        ' <span class="total">of '+r.total+' total</span>'+
-        (noStock?' &nbsp;— <span style="color:#991b1b;font-weight:700">None in stock</span>':'')+
+        '<span class="avail">'+r.available+' available</span> <span class="total">of '+r.total+'</span>'+
+        (noStock?' — <span style="color:#991b1b;font-weight:700">None in stock</span>':'')+
       '</div>'+
     '</div>';
   }).join('');
   el.classList.add('open');
 }
 
-function selectItem(desc, available, total) {
-  selectedDesc = desc;
+function selectItem(desc, stockSheet, available, total) {
+  selectedDesc  = desc;
+  selectedStock = stockSheet;
   selectedAvail = available;
   document.getElementById('desc-search').value = desc;
   document.getElementById('search-results').classList.remove('open');
-  document.getElementById('selected-item-name').textContent = desc;
+  document.getElementById('selected-item-name').textContent  = desc;
+  document.getElementById('selected-item-stock').textContent = stockSheet;
   document.getElementById('selected-item-avail').textContent = available + ' available in stock';
   document.getElementById('selected-item-row').style.display = 'block';
   document.getElementById('item-qty').value = '';
@@ -288,9 +249,8 @@ function addItem() {
   if (!selectedDesc) { toast('Search and select an item first','err'); return; }
   var qty = parseInt(document.getElementById('item-qty').value);
   if (!qty || qty < 1) { toast('Enter a valid quantity','err'); return; }
-  lineItems.push({description: selectedDesc, quantity: qty});
-  selectedDesc = '';
-  selectedAvail = 0;
+  lineItems.push({description: selectedDesc, stockSheet: selectedStock, quantity: qty});
+  selectedDesc = ''; selectedStock = ''; selectedAvail = 0;
   document.getElementById('desc-search').value = '';
   document.getElementById('item-qty').value = '';
   document.getElementById('selected-item-row').style.display = 'none';
@@ -301,76 +261,63 @@ function addItem() {
 function renderItems() {
   var el = document.getElementById('items-list');
   document.getElementById('item-count').textContent = lineItems.length;
-  if (!lineItems.length) { el.innerHTML = ''; return; }
-  el.innerHTML = lineItems.map(function(it, i) {
+  if (!lineItems.length) { el.innerHTML=''; return; }
+  el.innerHTML = lineItems.map(function(it,i){
     return '<div class="item-row"><div class="item-body">'+
       '<div class="ds">'+esc(it.description)+'</div>'+
+      '<div class="ss">'+esc(it.stockSheet)+'</div>'+
       '<div class="qty">Qty: '+it.quantity+'</div>'+
     '</div><button class="rm-btn" onclick="lineItems.splice('+i+',1);renderItems()">✕</button></div>';
   }).join('');
 }
 
 function submitRequest() {
-  var stock     = document.getElementById('req-stock').value;
   var endclient = document.getElementById('req-endclient').value.trim();
   var name      = document.getElementById('req-name').value.trim();
   var staffCode = document.getElementById('req-staffcode').value.trim();
-  if (!stock)     { toast('Select stock type','err'); return; }
-
-  if (!endclient) { toast('Enter Deliver To destination','err'); return; }
+  if (!endclient) { toast('Enter Deliver To (Solis Client)','err'); return; }
   if (!name)      { toast('Enter staff name','err'); return; }
   if (!staffCode) { toast('Enter staff code','err'); return; }
   if (!lineItems.length) { toast('Add at least one item','err'); return; }
 
   var btn = document.getElementById('btn-submit');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Submitting...';
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Submitting...';
 
   callGAS('submitMaterialRequest', {
-    stockType:     stock,
+    stockType:     lineItems[0].stockSheet || '',
     clientName:    endclient,
     endClientName: endclient,
     doNumber:      staffCode,
     requestorName: name,
     lineItems:     lineItems
   }, function(res) {
-    btn.disabled = false;
-    btn.innerHTML = 'Submit Material Request';
+    btn.disabled = false; btn.innerHTML = 'Submit Material Request';
     if (res.ok) {
       saveEndClient(endclient);
       document.getElementById('submit-result').innerHTML =
-        '<div class="alert-box ok">✓ Request submitted! Operations has been notified.</div>';
-      lineItems = [];
-      renderItems();
-      document.getElementById('req-staffcode').value = '';
+        '<div class="alert-box ok">✓ Request submitted! Operations notified.</div>';
+      lineItems = []; renderItems();
       document.getElementById('req-endclient').value = '';
       document.getElementById('req-name').value = '';
-      setTimeout(function(){ document.getElementById('submit-result').innerHTML = ''; }, 5000);
-    } else {
-      toast(res.msg || 'Error submitting','err');
-    }
+      document.getElementById('req-staffcode').value = '';
+      setTimeout(function(){ document.getElementById('submit-result').innerHTML=''; }, 5000);
+    } else { toast(res.msg||'Error','err'); }
   });
 }
 
 function loadRequests() {
-  var stock = document.getElementById('req-stock').value;
-  document.getElementById('req-list').innerHTML =
-    '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">Loading...</div>';
-  callGAS('getMaterialRequests', {stockSheet: stock||''}, function(res) {
+  document.getElementById('req-list').innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">Loading...</div>';
+  callGAS('getMaterialRequests', {}, function(res) {
     var el = document.getElementById('req-list');
-    var items = res.items || [];
-    if (!items.length) {
-      el.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">No pending requests.</div>';
-      return;
-    }
-    el.innerHTML = items.map(function(it) {
+    var items = res.items||[];
+    if (!items.length) { el.innerHTML='<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">No pending requests.</div>'; return; }
+    el.innerHTML = items.map(function(it){
       var lines = (it.lineItems||[]).map(function(l){
-        return '<div class="req-item"><span class="req-qty-badge">'+l.quantity+'</span>'+esc(l.description)+'</div>';
+        return '<div class="req-item"><span class="req-qty-badge">'+l.quantity+'</span>'+esc(l.description)+(l.stockSheet?' <span style="font-size:10px;color:#888;">('+esc(l.stockSheet)+')</span>':'')+'</div>';
       }).join('');
+      var deliver = it.endClientName || it.clientName || '';
       return '<div class="req-row">'+
-        '<div class="req-stock">'+esc(it.stockType)+'</div>'+
-        '<div class="req-client">'+esc(it.clientName)+'</div>'+
-        (it.endClientName ? '<div class="req-deliver">📦 Deliver to (Solis Client): <strong>'+esc(it.endClientName)+'</strong></div>' : '')+
+        '<div class="req-deliver">📦 '+esc(deliver)+'</div>'+
         lines+
         '<div class="req-meta">By '+esc(it.requestor)+' — '+esc(it.timestamp)+'</div>'+
       '</div>';
@@ -378,13 +325,8 @@ function loadRequests() {
   });
 }
 
-function toast(msg,type){
-  var el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast '+(type||'')+' show';
-  setTimeout(function(){ el.classList.remove('show'); }, 3000);
-}
-function esc(s){ return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg,type){var el=document.getElementById('toast');el.textContent=msg;el.className='toast '+(type||'')+' show';setTimeout(function(){el.classList.remove('show');},3000);}
+function esc(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 </script>
 </body>
 </html>
