@@ -1,3 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Storage Solutions JO - Solis Inventory</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f7f7;color:#111;min-height:100vh}
+.hdr{background:#007B7B;color:#fff;padding:12px 16px}
+.hdr-title{font-size:16px;font-weight:700}
+.hdr-sub{font-size:11px;opacity:.65}
+.tabs{display:flex;background:#fff;border-bottom:2px solid #e0efef}
+.tab{flex:1;padding:12px 4px;text-align:center;font-size:11px;font-weight:800;cursor:pointer;border-bottom:3px solid transparent;color:#999;text-transform:uppercase;letter-spacing:.5px;transition:all .15s}
+.tab.active{color:#007B7B;border-bottom-color:#007B7B}
+.screen{display:none;padding:12px 12px 100px;max-width:560px;margin:0 auto}
+.screen.active{display:block}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,80,80,.08)}
+.card-title{font-size:12px;font-weight:800;color:#007B7B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.lbl{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.frow{margin-bottom:10px}
+.inp{width:100%;padding:11px 12px;border:1.5px solid #c8dede;border-radius:8px;font-size:15px;color:#111;background:#fff;outline:none;transition:border-color .15s}
+.inp:focus{border-color:#007B7B}
+select.inp{appearance:auto}
+.btn-main{width:100%;padding:13px;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px}
+.btn-main.dark{background:#005a5a}
+.btn-main.amber{background:#92660a}
+.btn-main.grey{background:#777}
+.btn-main.green{background:#065f46}
+.btn-main.teal{background:#007B7B}
+.btn-main:disabled{background:#b0c8c8;cursor:not-allowed}
+.btn-sm{padding:8px 14px;background:#e0f2f2;border:none;border-radius:7px;color:#007B7B;font-size:13px;font-weight:700;cursor:pointer}
+.item-row{display:flex;align-items:flex-start;padding:9px 0;border-bottom:1px solid #e8f0f0;gap:8px}
+.item-row:last-child{border-bottom:none}
+.item-body{flex:1}
+.item-body .pn{font-size:11px;font-weight:800;color:#007B7B;text-transform:uppercase}
+.item-body .ds{font-size:13px;color:#222;font-weight:600}
+.item-body .sn{font-family:monospace;font-size:11px;color:#666}
+.item-body .loc{font-size:11px;color:#e07000;font-weight:700;margin-top:2px}
+.rm-btn{background:none;border:none;color:#c02020;font-size:18px;cursor:pointer;padding:2px 6px;flex-shrink:0}
+.tick-btn{width:30px;height:30px;border-radius:50%;border:2px solid #c8dede;background:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:transparent;transition:all .15s}
+.tick-btn.checked{background:#007B7B;border-color:#007B7B;color:#fff}
+.badge{display:inline-block;background:#007B7B;color:#fff;border-radius:20px;padding:1px 9px;font-size:12px;font-weight:700;margin-left:4px}
+.badge.amber{background:#92660a}
+.alert-box{border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:13px;font-weight:600}
+.alert-box.warn{background:#fef3c7;border:1.5px solid #f0d060;color:#92400e}
+.alert-box.err{background:#fee2e2;border:1.5px solid #fca5a5;color:#991b1b}
+.alert-box.ok{background:#d1fae5;border:1.5px solid #6ee7b7;color:#065f46}
+.alert-box.info{background:#e0f2fe;border:1.5px solid #7dd3fc;color:#075985}
+.plate-wrap{display:flex;gap:8px;align-items:flex-start}
+.plate-wrap .inp{flex:1}
+.btn-cam-plate{padding:11px 14px;background:#e0f2f2;border:1.5px solid #007B7B;border-radius:8px;color:#007B7B;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+#plate-file{display:none}
+.request-card{background:#f8fffe;border:1.5px solid #c8dede;border-radius:10px;padding:12px;margin-bottom:8px}
+.request-card .rc-header{font-size:12px;font-weight:800;color:#007B7B;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.request-card .rc-client{font-size:15px;font-weight:700;color:#111;margin-bottom:2px}
+.request-card .rc-endclient{font-size:13px;color:#005a5a;margin-bottom:4px}
+.request-card .rc-item{font-size:13px;color:#444;padding:2px 0}
+.request-card .rc-qty{display:inline-block;background:#007B7B;color:#fff;border-radius:5px;padding:1px 7px;font-size:12px;font-weight:700;margin-right:5px}
+.request-card .rc-meta{font-size:11px;color:#888;margin-top:4px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#005a5a;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:2000;max-width:320px;width:90%;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.show{opacity:1}
+.toast.ok{background:#065f46}
+.toast.err{background:#991b1b}
+.toast.warn{background:#92400e}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .65s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:24px 0;color:#aaa;font-size:13px}
+.scan-row{display:flex;gap:8px;margin-bottom:8px}
+.scan-row .inp{flex:1}
+.qty-info{font-size:12px;color:#007B7B;background:#e6f5f5;padding:6px 10px;border-radius:6px;margin-bottom:8px;display:none;line-height:1.6}
+.save-indicator{font-size:11px;color:#007B7B;text-align:right;margin-bottom:4px;min-height:16px}
+@media print{
+  .hdr,.tabs,.toast,.btn-main,.btn-sm,.scan-row,.rm-btn,.tick-btn{display:none!important}
+  .screen{display:block!important;padding:0!important}
+  .card{box-shadow:none;border:1px solid #ccc;margin-bottom:8px}
+}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-title">Storage Solutions JO</div>
+  <div class="hdr-sub">Solis Inventory System</div>
+</div>
+<div class="tabs">
+  <div class="tab active" id="tab-receive"  onclick="switchTab('receive')">Receive In</div>
+  <div class="tab"        id="tab-dispatch" onclick="switchTab('dispatch')">Dispatch</div>
+  <div class="tab"        id="tab-pickup"   onclick="switchTab('pickup')">Pickup</div>
+</div>
+
+<!-- RECEIVE TAB -->
+<div class="screen active" id="screen-receive">
+  <div class="card">
+    <div class="card-title">Goods Receipt</div>
+    <div class="frow">
+      <div class="lbl">Stock Sheet *</div>
+      <select class="inp" id="grv-stock">
+        <option value="">-- select stock --</option>
+        <option>Huawei Main Stock</option>
+        <option>Batteries Stock</option>
+        <option>Hoymiles Main Stock</option>
+        <option>Other Items</option>
+      </select>
+    </div>
+    <div class="frow"><div class="lbl">GRV Number (auto)</div><input class="inp" id="grv-no" type="number" placeholder="Auto"></div>
+    <div class="frow"><div class="lbl">Date Received</div><input class="inp" id="grv-date" type="date"></div>
+    <div class="frow"><div class="lbl">Remarks</div><input class="inp" id="grv-remarks" placeholder="Optional"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Scan Items In <span class="badge" id="recv-count">0</span></div>
+    <div class="save-indicator" id="recv-save-status"></div>
+    <div class="scan-row">
+      <input class="inp" id="receive-serial" placeholder="Scan or type Serial No..." autocomplete="off" onkeydown="if(event.key==='Enter')doReceiveScan()">
+      <button class="btn-sm" onclick="doReceiveScan()">Add</button>
+    </div>
+    <div id="receive-result"></div>
+    <div id="received-list"></div>
+    <div id="receive-actions" style="display:none">
+      <button class="btn-main dark" onclick="confirmAllReceived()">Confirm All & Send GRV Email</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISPATCH TAB -->
+<div class="screen" id="screen-dispatch">
+  <div class="card">
+    <div class="card-title">Material Requests</div>
+    <button class="btn-sm" onclick="loadRequests()" style="margin-bottom:10px">↻ Refresh Requests</button>
+    <div id="requests-list"><div class="empty-state">Tap refresh to load requests</div></div>
+  </div>
+  <div class="card" id="dispatch-scan-card" style="display:none">
+    <div class="card-title">Scan to Dispatch <span class="badge" id="disp-count">0</span></div>
+    <div class="frow">
+      <div class="lbl">Client</div>
+      <div id="dispatch-client-label" style="font-size:15px;font-weight:700;color:#007B7B;padding:2px 0"></div>
+      <div id="dispatch-endclient-label" style="font-size:13px;font-weight:600;color:#005a5a;padding:2px 0;display:none"></div>
+    </div>
+    <div class="qty-info" id="qty-info"></div>
+    <div class="save-indicator" id="disp-save-status"></div>
+    <div class="scan-row">
+      <input class="inp" id="dispatch-serial" placeholder="Scan Serial No..." autocomplete="off" onkeydown="if(event.key==='Enter')doDispatchScan()">
+      <button class="btn-sm" onclick="doDispatchScan()">Add</button>
+    </div>
+    <div id="dispatch-result"></div>
+    <div id="dispatched-list"></div>
+    <div id="dispatch-actions" style="display:none">
+      <button class="btn-main dark" onclick="confirmAllDispatched()">✓ Confirm All to Dispatch</button>
+      <button class="btn-main green" onclick="printDispatchLabel()" style="margin-top:6px">🖨 Print Dispatch Label</button>
+    </div>
+  </div>
+</div>
+
+<!-- PICKUP TAB -->
+<div class="screen" id="screen-pickup">
+  <div class="card">
+    <div class="card-title">Find Items at Dispatch</div>
+    <div class="frow">
+      <div class="lbl">Deliver To (Solis Client) *</div>
+      <select class="inp" id="pickup-client" onchange="loadAtDispatch()">
+        <option value="">-- select destination --</option>
+      </select>
+    </div>
+    <button class="btn-sm" onclick="loadEndClients()">↻ Refresh Clients</button>
+    <div style="font-size:11px;color:#888;margin-top:6px">Shows items from all stock types</div>
+  </div>
+  <div class="card" id="at-dispatch-card" style="display:none">
+    <div class="card-title">Items at Dispatch <span class="badge amber" id="dispatch-count">0</span></div>
+    <div style="font-size:12px;color:#666;margin-bottom:8px">Scan each item as it loads onto the truck.</div>
+    <div class="save-indicator" id="pickup-save-status"></div>
+    <div class="scan-row">
+      <input class="inp" id="pickup-serial" placeholder="Scan to confirm..." autocomplete="off" onkeydown="if(event.key==='Enter')doPickupScan()">
+      <button class="btn-sm" onclick="doPickupScan()">Confirm</button>
+    </div>
+    <div id="at-dispatch-list"></div>
+  </div>
+  <div class="card" id="pickup-details-card" style="display:none">
+    <div class="card-title">Pickup Details</div>
+    <div class="frow"><div class="lbl">Driver Name *</div><input class="inp" id="pu-driver" type="text" placeholder="Driver name" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+    <div class="frow">
+      <div class="lbl">License Plate *</div>
+      <div class="plate-wrap">
+        <input class="inp" id="pu-plate" type="text" placeholder="e.g. 12-34567" autocomplete="off">
+        <button class="btn-cam-plate" onclick="document.getElementById('plate-file').click()">📷 Scan Plate</button>
+      </div>
+      <input type="file" id="plate-file" accept="image/*" capture="environment" onchange="processPlatePhoto(this)">
+    </div>
+    <div class="frow">
+      <div class="lbl">Vehicle Type *</div>
+      <select class="inp" id="pu-vehicle">
+        <option value="">-- select --</option>
+        <option>Pickup</option><option>Diana</option><option>LB</option>
+        <option>1/2 LB</option><option>20ft container</option>
+        <option>20ft flatbed trailer</option><option>40ft container</option>
+      </select>
+    </div>
+    <div class="frow"><div class="lbl">GIV Number (auto)</div><input class="inp" id="pu-giv" type="number" placeholder="Auto-generated"></div>
+    <button class="btn-main dark" id="btn-confirm-pickup" onclick="submitPickup()">Confirm Pickup & Generate GIV</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbxGcNOvVD6-V-zXDhjZ4t3x0TMfT2kMcnV-ONPK1_NTOOXXqeEpG_MAEVdHvzohOM95qw/exec';
+
+var currentTab     = 'receive';
+var currentDispatchClient    = '';
+var currentDispatchEndClient = '';
+var currentRequestLineItems  = [];
+var receivedItems   = [];
+var dispatchedItems = [];
+var atDispatchList  = [];
+var atDispatchConfirmed = {};
+var nextGrv = 8000;
+var nextGiv = 8500;
+
+// Session IDs for auto-save
+var DISP_SESSION   = 'dispatch-' + Date.now();
+var PICKUP_SESSION = 'pickup-' + Date.now();
+
+window.addEventListener('load', function() {
+  document.getElementById('grv-date').value = new Date().toISOString().split('T')[0];
+  callGAS('getConfig', {}, function(cfg) {
+    nextGrv = cfg.nextGRV || 8001;
+    nextGiv = cfg.nextGIV || 8501;
+    document.getElementById('grv-no').value = nextGrv;
+    document.getElementById('pu-giv').value = nextGiv;
+  });
+  loadEndClients();
+});
+
+function switchTab(tab) {
+  currentTab = tab;
+  ['receive','dispatch','pickup'].forEach(function(t) {
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('screen-'+t).classList.toggle('active', t===tab);
+  });
+  if (tab === 'dispatch') loadRequests();
+  if (tab === 'pickup') loadEndClients();
+}
+
+function callGAS(action, params, cb) {
+  fetch(GAS_URL+'?action='+action, {method:'POST', body:JSON.stringify(params)})
+    .then(function(r){return r.json();})
+    .then(function(d){if(cb)cb(d);})
+    .catch(function(){toast('Connection error','err');});
+}
+
+function autoSave(type, items, clientName) {
+  var sessionId = type === 'dispatch' ? DISP_SESSION : PICKUP_SESSION;
+  var statusEl  = document.getElementById(type === 'dispatch' ? 'disp-save-status' : 'pickup-save-status');
+  if (statusEl) statusEl.textContent = 'Saving...';
+  callGAS('autoSave', {
+    sessionId:  sessionId,
+    type:       type,
+    clientName: clientName || '',
+    items:      items
+  }, function(res) {
+    if (statusEl) statusEl.textContent = res.ok ? '✓ Saved to sheet' : '⚠ Save failed';
+  });
+}
+
+// ===== RECEIVE =====
+function doReceiveScan() {
+  var stock = document.getElementById('grv-stock').value;
+  if (!stock) { toast('Select stock sheet first','warn'); return; }
+  var serial = document.getElementById('receive-serial').value.trim();
+  if (!serial) { toast('Enter Serial No','err'); return; }
+  var resEl = document.getElementById('receive-result');
+  if (receivedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})) {
+    toast('Already added: '+serial,'warn');
+    document.getElementById('receive-serial').value='';
+    return;
+  }
+  callGAS('lookupSerial', {stockSheet: stock, serial: serial}, function(res) {
+    if (res.ok && res.found) {
+      receivedItems.push({rowIndex:res.rowIndex, serial:res.serial, partNo:res.partNo, description:res.description, stockSheet:res.stockSheet||stock});
+      renderReceivedList();
+      resEl.innerHTML = '<div class="alert-box ok">✓ '+esc(res.description)+'</div>';
+      document.getElementById('receive-serial').value='';
+      setTimeout(function(){resEl.innerHTML='';},2000);
+    } else if (res.notFound) {
+      resEl.innerHTML =
+        '<div class="alert-box warn">Not on anticipated list: '+esc(serial)+'</div>'+
+        '<button class="btn-main amber" style="margin-top:6px" onclick="sendOverride(\'receive\',\''+esc(serial)+'\')">Request Override</button>'+
+        '<button class="btn-main grey" style="margin-top:6px" onclick="clearReceiveResult()">Skip</button>';
+    } else {
+      resEl.innerHTML = '<div class="alert-box err">'+esc(res.msg)+'</div>';
+    }
+  });
+}
+
+function clearReceiveResult() {
+  document.getElementById('receive-result').innerHTML='';
+  document.getElementById('receive-serial').value='';
+}
+
+function renderReceivedList() {
+  var el = document.getElementById('received-list');
+  document.getElementById('recv-count').textContent = receivedItems.length;
+  document.getElementById('receive-actions').style.display = receivedItems.length ? 'block':'none';
+  if (!receivedItems.length) { el.innerHTML=''; return; }
+  el.innerHTML = receivedItems.map(function(it,i) {
+    return '<div class="item-row"><div class="item-body">'+
+      (it.partNo?'<div class="pn">'+esc(it.partNo)+'</div>':'')+
+      '<div class="ds">'+esc(it.description)+'</div>'+
+      '<div class="sn">'+esc(it.serial)+'</div>'+
+    '</div><button class="rm-btn" onclick="receivedItems.splice('+i+',1);renderReceivedList()">✕</button></div>';
+  }).join('');
+}
+
+function confirmAllReceived() {
+  if (!receivedItems.length) { toast('No items scanned','err'); return; }
+  var stock = document.getElementById('grv-stock').value;
+  var grvNo = document.getElementById('grv-no').value.trim();
+  if (!grvNo) { toast('GRV number required','err'); return; }
+  var btn = document.querySelector('#receive-actions .btn-main');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Saving...';}
+  callGAS('confirmReceive', {
+    stockSheet: stock, grvNo: grvNo,
+    dateIn: document.getElementById('grv-date').value,
+    remarks: document.getElementById('grv-remarks').value.trim(),
+    items: receivedItems
+  }, function(res) {
+    if(btn){btn.disabled=false;btn.innerHTML='Confirm All & Send GRV Email';}
+    if (res.ok) {
+      toast(res.msg,'ok');
+      receivedItems=[];renderReceivedList();
+      document.getElementById('receive-result').innerHTML='';
+      nextGrv++;document.getElementById('grv-no').value=nextGrv;
+    } else { toast(res.msg,'err'); }
+  });
+}
+
+// ===== DISPATCH =====
+function loadRequests() {
+  document.getElementById('requests-list').innerHTML = '<div class="empty-state">Loading...</div>';
+  callGAS('getMaterialRequests', {}, function(res) {
+    var el = document.getElementById('requests-list');
+    var items = res.items||[];
+    if (!items.length) {
+      el.innerHTML='<div class="empty-state">No pending material requests.</div>';
+      document.getElementById('dispatch-scan-card').style.display='none';
+      return;
+    }
+    el.innerHTML = items.map(function(it) {
+      var lineHtml = (it.lineItems||[]).map(function(l){
+        return '<div class="rc-item"><span class="rc-qty">'+esc(l.quantity||1)+'</span>'+esc(l.description)+(l.stockSheet?' <span style="font-size:10px;color:#888;">('+esc(l.stockSheet)+')</span>':'')+'</div>';
+      }).join('');
+      var lineItemsJson = esc(JSON.stringify(it.lineItems||[]));
+      var endClient = it.endClientName || it.clientName || '';
+      return '<div class="request-card">'+
+        '<div class="rc-header">'+esc(it.requestor)+' — '+esc(it.timestamp)+'</div>'+
+        '<div class="rc-client">'+esc(it.clientName)+'</div>'+
+        (endClient?'<div class="rc-endclient">📦 Deliver to: <strong>'+esc(endClient)+'</strong></div>':'')+
+        lineHtml+
+        '<button class="btn-sm" style="margin-top:8px" onclick="selectRequest(\''+esc(it.clientName)+'\',\''+esc(endClient)+'\',\''+lineItemsJson+'\')">Start Scanning</button>'+
+      '</div>';
+    }).join('');
+  });
+}
+
+function selectRequest(clientName, endClientName, lineItemsJson) {
+  currentDispatchClient    = clientName;
+  currentDispatchEndClient = endClientName;
+  try { currentRequestLineItems = JSON.parse(lineItemsJson); } catch(e) { currentRequestLineItems = []; }
+  document.getElementById('dispatch-client-label').textContent = clientName;
+  var ecEl = document.getElementById('dispatch-endclient-label');
+  if (endClientName) { ecEl.textContent = '📦 Deliver to: ' + endClientName; ecEl.style.display='block'; }
+  else { ecEl.style.display='none'; }
+  document.getElementById('dispatch-scan-card').style.display='block';
+  if (currentRequestLineItems.length) {
+    var qInfo = document.getElementById('qty-info');
+    qInfo.style.display='block';
+    qInfo.innerHTML = '<strong>Requested:</strong><br>' + currentRequestLineItems.map(function(l){
+      return '• '+l.quantity+' × '+l.description+(l.stockSheet?' ('+l.stockSheet+')':'');
+    }).join('<br>');
+  }
+  dispatchedItems=[];renderDispatchedList();
+  document.getElementById('dispatch-serial').focus();
+}
+
 function doDispatchScan() {
   if (!currentDispatchClient) { toast('Select a request first','err'); return; }
   var serial = document.getElementById('dispatch-serial').value.trim();
@@ -10,69 +392,260 @@ function doDispatchScan() {
   }
   callGAS('scanDispatch', {serial: serial, clientName: currentDispatchClient}, function(res) {
     if (res.ok && res.found) {
-
-      // DESCRIPTION CHECK: must match a requested item
-      if (currentRequestLineItems && currentRequestLineItems.length > 0) {
-        function norm(s){ return s.toLowerCase().replace(/\s+/g,'').replace(/[-_]/g,''); }
-        var resN = norm(res.description);
-        var matchedLine = null;
-        currentRequestLineItems.forEach(function(l) {
-          var lN = norm(l.description);
-          if (resN.indexOf(lN.substring(0,10)) >= 0 || lN.indexOf(resN.substring(0,10)) >= 0) matchedLine = l;
-        });
-        if (!matchedLine) {
-          resEl.innerHTML = '<div class="alert-box err" style="margin-bottom:8px">'+
-            '<strong>WRONG ITEM</strong><br>Scanned: '+esc(res.description)+'<br>'+
-            'Requested: '+esc(currentRequestLineItems.map(function(l){return l.description;}).join(' / '))+
-          '</div><button class="btn-main grey" style="margin-top:4px" onclick="clearDispatchResult()">Scan correct item</button>';
-          document.getElementById('dispatch-serial').value=''; return;
-        }
-        // QUANTITY CHECK
-        function norm2(s){ return s.toLowerCase().replace(/\s+/g,'').replace(/[-_]/g,''); }
-        var lN2 = norm2(matchedLine.description);
-        var alreadyCount = dispatchedItems.filter(function(it){
-          var itN = norm2(it.description);
-          return itN.indexOf(lN2.substring(0,10)) >= 0 || lN2.indexOf(itN.substring(0,10)) >= 0;
-        }).length;
-        if (alreadyCount >= parseInt(matchedLine.quantity)) {
-          resEl.innerHTML = '<div class="alert-box err">'+
-            '<strong>QUANTITY EXCEEDED</strong><br>Already scanned '+alreadyCount+'/'+matchedLine.quantity+' of '+esc(matchedLine.description)+
-          '</div><button class="btn-main grey" style="margin-top:4px" onclick="clearDispatchResult()">OK</button>';
-          document.getElementById('dispatch-serial').value=''; return;
-        }
-      }
-
-      // FIFO WARNING
-      if (res.fifoWarning) {
-        window._pendingItem = {rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location};
-        resEl.innerHTML = '<div class="alert-box warn" style="margin-bottom:8px">'+
-          '<strong>FIFO WARNING</strong><br>Older item of this type exists. Scan that one first.<br>Location of this item: '+esc(res.location)+
-        '</div>'+
-        '<button class="btn-main amber" style="margin-top:4px" onclick="addPendingDispatchItem()">Use this item anyway</button>'+
-        '<button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Scan older item instead</button>';
-        document.getElementById('dispatch-serial').value=''; return;
-      }
-
-      addDispatchItem({rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location},resEl);
-
+      dispatchedItems.push({
+        rowIndex:   res.rowIndex,
+        stockSheet: res.stockSheet,
+        serial:     res.serial,
+        partNo:     res.partNo,
+        description:res.description,
+        location:   res.location
+      });
+      renderDispatchedList();
+      resEl.innerHTML = '<div class="alert-box ok">✓ '+esc(res.description)+' — <strong>Location: '+esc(res.location)+'</strong></div>';
+      document.getElementById('dispatch-serial').value='';
+      setTimeout(function(){resEl.innerHTML='';},3000);
+      // Auto-save to sheet
+      autoSave('dispatch', dispatchedItems, currentDispatchClient);
     } else if (res.notFound) {
-      resEl.innerHTML='<div class="alert-box warn">Not found: '+esc(serial)+'</div>'+
+      resEl.innerHTML =
+        '<div class="alert-box warn">Not found: '+esc(serial)+'</div>'+
         '<button class="btn-main amber" style="margin-top:6px" onclick="sendOverride(\'dispatch\',\''+esc(serial)+'\')">Request Override</button>'+
         '<button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Skip</button>';
     } else {
-      resEl.innerHTML='<div class="alert-box err">'+esc(res.msg)+'</div>';
+      resEl.innerHTML = '<div class="alert-box err">'+esc(res.msg)+'</div>';
     }
   });
 }
 
-function addPendingDispatchItem() {
-  if (window._pendingItem) { addDispatchItem(window._pendingItem, document.getElementById('dispatch-result')); window._pendingItem=null; }
+function clearDispatchResult() {
+  document.getElementById('dispatch-result').innerHTML='';
+  document.getElementById('dispatch-serial').value='';
 }
 
-function addDispatchItem(item, resEl) {
-  dispatchedItems.push(item);
-  renderDispatchedList();
-  resEl.innerHTML='<div class="alert-box ok">Added: '+esc(item.description)+' -- Location: '+esc(item.location)+'</div>';
-  setTimeout(function(){resEl.innerHTML='';},3000);
-  autoSave('dispatch', dispatchedItems, currentDispatchClient);
+function renderDispatchedList() {
+  var el = document.getElementById('dispatched-list');
+  document.getElementById('disp-count').textContent = dispatchedItems.length;
+  document.getElementById('dispatch-actions').style.display = dispatchedItems.length ? 'block':'none';
+  if (!dispatchedItems.length) { el.innerHTML=''; return; }
+  el.innerHTML = dispatchedItems.map(function(it,i) {
+    return '<div class="item-row"><div class="item-body">'+
+      '<div class="pn">'+esc(it.stockSheet||'')+'</div>'+
+      '<div class="ds">'+esc(it.description)+'</div>'+
+      '<div class="sn">'+esc(it.serial)+'</div>'+
+      (it.location?'<div class="loc">📍 '+esc(it.location)+'</div>':'')+
+    '</div><button class="rm-btn" onclick="dispatchedItems.splice('+i+',1);renderDispatchedList()">✕</button></div>';
+  }).join('');
 }
+
+function confirmAllDispatched() {
+  if (!dispatchedItems.length) { toast('No items scanned','err'); return; }
+  var btn = document.querySelector('#dispatch-actions .btn-main');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> Saving...';}
+  callGAS('confirmDispatch', {
+    clientName: currentDispatchClient,
+    items: dispatchedItems
+  }, function(res) {
+    if(btn){btn.disabled=false;btn.innerHTML='✓ Confirm All to Dispatch';}
+    if (res.ok) {
+      toast(res.msg,'ok');
+      // Clear session
+      callGAS('clearSession', {sessionId: DISP_SESSION}, function(){});
+      dispatchedItems=[];renderDispatchedList();
+      document.getElementById('dispatch-result').innerHTML='';
+      document.getElementById('disp-save-status').textContent='';
+    } else { toast(res.msg,'err'); }
+  });
+}
+
+function printDispatchLabel() {
+  if (!dispatchedItems.length) { toast('No items to print','err'); return; }
+  var now = new Date().toLocaleDateString('en-GB');
+  var rows = dispatchedItems.map(function(it,i){
+    return '<tr><td>'+(i+1)+'</td><td>'+esc(it.stockSheet||'')+'</td><td>'+esc(it.description)+'</td><td style="font-family:monospace">'+esc(it.serial)+'</td><td>'+esc(it.location||'')+'</td></tr>';
+  }).join('');
+  var html = '<html><head><style>body{font-family:Arial,sans-serif;padding:20px}h2{color:#007B7B}table{width:100%;border-collapse:collapse;margin-top:12px}th{background:#007B7B;color:#fff;padding:8px;text-align:left}td{padding:8px;border-bottom:1px solid #ddd}@media print{button{display:none}}</style></head>'+
+    '<body><h2>Storage Solutions JO — Dispatch Label</h2>'+
+    '<p><strong>Client:</strong> '+esc(currentDispatchClient)+'</p>'+
+    (currentDispatchEndClient?'<p><strong>Deliver To:</strong> '+esc(currentDispatchEndClient)+'</p>':'')+
+    '<p><strong>Date:</strong> '+now+'</p>'+
+    '<p><strong>Total Items:</strong> '+dispatchedItems.length+'</p>'+
+    '<table><thead><tr><th>#</th><th>Stock</th><th>Description</th><th>Serial No</th><th>Location</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<br><p style="font-size:11px;color:#888">Solis Inventory System — Storage Solutions JO</p>'+
+    '<script>window.print();<\/script></body></html>';
+  var w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+}
+
+// ===== PICKUP =====
+function loadEndClients() {
+  callGAS('getMaterialRequests', {}, function(res) {
+    var items = res.items || [];
+    var seen = {};
+    var clients = [];
+    items.forEach(function(it) {
+      var name = it.endClientName || it.clientName || '';
+      if (name && !seen[name.toLowerCase()]) {
+        seen[name.toLowerCase()] = true;
+        clients.push(name);
+      }
+    });
+    var sel = document.getElementById('pickup-client');
+    var current = sel.value;
+    sel.innerHTML = '<option value="">-- select destination --</option>';
+    clients.sort().forEach(function(c) {
+      var o = document.createElement('option');
+      o.value = o.textContent = c;
+      if (c === current) o.selected = true;
+      sel.appendChild(o);
+    });
+    if (current && clients.indexOf(current) >= 0) loadAtDispatch();
+  });
+}
+
+function loadAtDispatch() {
+  var client = document.getElementById('pickup-client').value;
+  if (!client) return;
+  callGAS('getAtDispatchAll', {clientName: client}, function(res) {
+    atDispatchList = res.items || [];
+    atDispatchConfirmed = {};
+    renderAtDispatchList();
+    var hasItems = atDispatchList.length > 0;
+    document.getElementById('at-dispatch-card').style.display   = hasItems ? 'block':'none';
+    document.getElementById('pickup-details-card').style.display = hasItems ? 'block':'none';
+    document.getElementById('dispatch-count').textContent = atDispatchList.length;
+    if (!hasItems) toast('No items at dispatch for this client','warn');
+  });
+}
+
+function renderAtDispatchList() {
+  var el = document.getElementById('at-dispatch-list');
+  if (!atDispatchList.length) { el.innerHTML='<div class="empty-state">No items at dispatch.</div>'; return; }
+  el.innerHTML = atDispatchList.map(function(it) {
+    var conf = atDispatchConfirmed[it.serial];
+    return '<div class="item-row">'+
+      '<div class="item-body">'+
+        '<div class="pn">'+esc(it.stockSheet||'')+'</div>'+
+        '<div class="ds">'+esc(it.description)+'</div>'+
+        '<div class="sn">'+esc(it.serial)+'</div>'+
+      '</div>'+
+      '<button class="tick-btn'+(conf?' checked':'')+'" onclick="toggleConfirm(\''+esc(it.serial)+'\')">'+
+        (conf?'✓':'')+'</button>'+
+    '</div>';
+  }).join('');
+}
+
+function doPickupScan() {
+  var serial = document.getElementById('pickup-serial').value.trim();
+  if (!serial) { toast('Scan or enter Serial No','err'); return; }
+  var match = atDispatchList.find(function(it){return it.serial.toUpperCase()===serial.toUpperCase();});
+  if (match) {
+    atDispatchConfirmed[match.serial] = true;
+    renderAtDispatchList();
+    toast('✓ '+match.description,'ok');
+    document.getElementById('pickup-serial').value='';
+    // Auto-save confirmed items
+    var confirmed = atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});
+    autoSave('pickup', confirmed, document.getElementById('pickup-client').value);
+  } else {
+    toast('Not in dispatch list: '+serial,'warn');
+    document.getElementById('pickup-serial').value='';
+  }
+}
+
+function toggleConfirm(serial) {
+  atDispatchConfirmed[serial] = !atDispatchConfirmed[serial];
+  renderAtDispatchList();
+}
+
+function submitPickup() {
+  var driver  = document.getElementById('pu-driver').value.trim();
+  var plate   = document.getElementById('pu-plate').value.trim();
+  var vehicle = document.getElementById('pu-vehicle').value;
+  var client  = document.getElementById('pickup-client').value;
+  var givNo   = document.getElementById('pu-giv').value.trim();
+  if (!driver) { toast('Enter driver name','err'); return; }
+  if (!plate)  { toast('Enter license plate','err'); return; }
+  if (!vehicle){ toast('Select vehicle type','err'); return; }
+  var toConfirm = atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});
+  if (!toConfirm.length){ toast('Scan or tick at least one item','err'); return; }
+  setBusy('btn-confirm-pickup',true);
+  // Group by stock sheet
+  var sheetGroups = {};
+  toConfirm.forEach(function(it) {
+    var s = it.stockSheet || 'Huawei Main Stock';
+    if (!sheetGroups[s]) sheetGroups[s] = [];
+    sheetGroups[s].push(it);
+  });
+  var sheets = Object.keys(sheetGroups);
+  var completed = 0;
+  var lastMsg = '';
+  sheets.forEach(function(sheet) {
+    callGAS('confirmPickup', {
+      stockSheet: sheet, clientName: client,
+      driverName: driver, licensePlate: plate, vehicleType: vehicle,
+      givNo: givNo, items: sheetGroups[sheet]
+    }, function(res) {
+      completed++;
+      if (res.ok) lastMsg = res.msg;
+      if (completed === sheets.length) {
+        setBusy('btn-confirm-pickup', false, 'Confirm Pickup & Generate GIV');
+        toast(lastMsg || 'GIV confirmed','ok');
+        callGAS('clearSession', {sessionId: PICKUP_SESSION}, function(){});
+        document.getElementById('pu-driver').value='';
+        document.getElementById('pu-plate').value='';
+        document.getElementById('pu-vehicle').value='';
+        nextGiv++;document.getElementById('pu-giv').value=nextGiv;
+        atDispatchConfirmed={};atDispatchList=[];
+        renderAtDispatchList();
+        document.getElementById('at-dispatch-card').style.display='none';
+        document.getElementById('pickup-details-card').style.display='none';
+      }
+    });
+  });
+}
+
+// ===== OVERRIDE =====
+function sendOverride(type, serial) {
+  callGAS('requestOverride',{
+    type: type==='receive'?'RECEIVE OVERRIDE':'DISPATCH OVERRIDE',
+    serial: serial,
+    reason:'Item not on '+(type==='receive'?'anticipated list':'stock')
+  },function(){
+    toast('Override request sent','warn');
+    if(type==='receive'){
+      document.getElementById('receive-result').innerHTML='<div class="alert-box info">Override sent. Continue scanning.</div>';
+      document.getElementById('receive-serial').value='';
+    } else {
+      document.getElementById('dispatch-result').innerHTML='<div class="alert-box info">Override sent. Continue scanning.</div>';
+      document.getElementById('dispatch-serial').value='';
+    }
+  });
+}
+
+// ===== PLATE OCR =====
+function processPlatePhoto(input) {
+  if(!input.files||!input.files[0])return;
+  document.getElementById('pu-plate').value='Reading...';
+  toast('Reading plate — please wait...','');
+  Tesseract.recognize(input.files[0],'eng',{
+    tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'
+  }).then(function(r){
+    var text = r.data.text.replace(/[^A-Z0-9\-]/gi,'').trim();
+    document.getElementById('pu-plate').value = text || '';
+    if(text) toast('Plate read: '+text,'ok');
+    else toast('Could not read — type manually','warn');
+  }).catch(function(){
+    document.getElementById('pu-plate').value='';
+    toast('OCR failed — type manually','warn');
+  });
+  input.value='';
+}
+
+// ===== HELPERS =====
+function toast(msg,type){var el=document.getElementById('toast');el.textContent=msg;el.className='toast '+(type||'')+' show';setTimeout(function(){el.classList.remove('show');},3200);}
+function setBusy(id,busy,label){var btn=document.getElementById(id);btn.disabled=busy;if(!busy&&label)btn.innerHTML=label;if(busy)btn.innerHTML='<span class="spin"></span>';}
+function esc(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>
