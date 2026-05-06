@@ -175,14 +175,12 @@ select.inp{appearance:auto}
   </div>
   <div class="card" id="pickup-details-card" style="display:none">
     <div class="card-title">Pickup Details</div>
-    <div class="frow"><div class="lbl">Driver Name *</div><input class="inp" id="pu-driver" type="text" placeholder="Driver name" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+    <div class="frow"><div class="lbl">Driver Name *</div><input class="inp" id="pu-driver" type="text" placeholder="Tap here to type driver name" autocomplete="name" autocapitalize="words" onfocus="document.getElementById('pickup-serial').blur()"></div>
     <div class="frow">
       <div class="lbl">License Plate *</div>
-      <div class="plate-wrap">
-        <input class="inp" id="pu-plate" type="text" placeholder="e.g. 12-34567" autocomplete="off">
-        <button class="btn-cam-plate" onclick="document.getElementById('plate-file').click()">📷 Scan Plate</button>
-      </div>
-      <input type="file" id="plate-file" accept="image/*" capture="environment" onchange="processPlatePhoto(this)">
+      <input class="inp" id="pu-plate" type="text" placeholder="Type plate or use camera below" autocomplete="off" style="margin-bottom:6px">
+      <label for="plate-file" style="display:block;width:100%;padding:11px;background:#e0f2f2;border:1.5px solid #007B7B;border-radius:8px;color:#007B7B;font-size:14px;font-weight:700;cursor:pointer;text-align:center">📷 Take Photo of Plate</label>
+      <input type="file" id="plate-file" accept="image/*" capture="environment" style="display:none" onchange="processPlatePhoto(this)">
     </div>
     <div class="frow">
       <div class="lbl">Vehicle Type *</div>
@@ -201,7 +199,7 @@ select.inp{appearance:auto}
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbxGcNOvVD6-V-zXDhjZ4t3x0TMfT2kMcnV-ONPK1_NTOOXXqeEpG_MAEVdHvzohOM95qw/exec';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbyA2iQd3rksUc3anKDthy3_Q83eY2Jiha8XICTQLfX9xoSjel3Ov9PxkwB021NuLWcnyA/exec';
 
 var currentTab     = 'receive';
 var currentDispatchClient    = '';
@@ -392,6 +390,33 @@ function doDispatchScan() {
   }
   callGAS('scanDispatch', {serial: serial, clientName: currentDispatchClient}, function(res) {
     if (res.ok && res.found) {
+      // DESCRIPTION + QUANTITY CHECK
+      if (currentRequestLineItems && currentRequestLineItems.length > 0) {
+        var fn = function(s){ return s.toLowerCase().replace(/\s+/g,'').replace(/[-_]/g,''); };
+        var resN = fn(res.description);
+        var matchedLine = null;
+        currentRequestLineItems.forEach(function(l) {
+          var lN = fn(l.description);
+          if (resN.indexOf(lN.substring(0,10)) >= 0 || lN.indexOf(resN.substring(0,10)) >= 0) matchedLine = l;
+        });
+        if (!matchedLine) {
+          resEl.innerHTML = '<div class="alert-box err">⛔ WRONG ITEM: '+esc(res.description)+'<br>Requested: '+esc(currentRequestLineItems.map(function(l){return l.description;}).join(' / '))+'</div>';
+          document.getElementById('dispatch-serial').value=''; return;
+        }
+        var already = dispatchedItems.filter(function(it){ return fn(it.description).indexOf(fn(matchedLine.description).substring(0,10)) >= 0; }).length;
+        if (already >= parseInt(matchedLine.quantity)) {
+          resEl.innerHTML = '<div class="alert-box err">⛔ QUANTITY EXCEEDED: '+already+'/'+matchedLine.quantity+' of '+esc(matchedLine.description)+' already scanned</div>';
+          document.getElementById('dispatch-serial').value=''; return;
+        }
+      }
+      // FIFO WARNING
+      if (res.fifoWarning) {
+        pendingFifoItem = {rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location};
+        resEl.innerHTML = '<div class="alert-box warn">⚠ FIFO: Older item of this type exists. Location: '+esc(res.location)+'</div>'+
+          '<button class="btn-main amber" style="margin-top:6px" onclick="addFifoItem()">Use this item anyway</button>'+
+          '<button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Scan older item instead</button>';
+        document.getElementById('dispatch-serial').value=''; return;
+      }
       dispatchedItems.push({
         rowIndex:   res.rowIndex,
         stockSheet: res.stockSheet,
@@ -401,10 +426,9 @@ function doDispatchScan() {
         location:   res.location
       });
       renderDispatchedList();
-      resEl.innerHTML = '<div class="alert-box ok">✓ '+esc(res.description)+' — <strong>Location: '+esc(res.location)+'</strong></div>';
+      resEl.innerHTML = '<div class="alert-box ok">✓ '+esc(res.description)+' — Location: '+esc(res.location)+'</div>';
       document.getElementById('dispatch-serial').value='';
       setTimeout(function(){resEl.innerHTML='';},3000);
-      // Auto-save to sheet
       autoSave('dispatch', dispatchedItems, currentDispatchClient);
     } else if (res.notFound) {
       resEl.innerHTML =
@@ -570,6 +594,8 @@ function submitPickup() {
   var toConfirm = atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});
   if (!toConfirm.length){ toast('Scan or tick at least one item','err'); return; }
   setBusy('btn-confirm-pickup',true);
+  // Use one shared GIV for all sheets
+  var sharedGivNo = parseInt(document.getElementById('pu-giv').value) || nextGiv;
   // Group by stock sheet
   var sheetGroups = {};
   toConfirm.forEach(function(it) {
@@ -584,7 +610,7 @@ function submitPickup() {
     callGAS('confirmPickup', {
       stockSheet: sheet, clientName: client,
       driverName: driver, licensePlate: plate, vehicleType: vehicle,
-      givNo: givNo, items: sheetGroups[sheet]
+      givNo: sharedGivNo, items: sheetGroups[sheet]
     }, function(res) {
       completed++;
       if (res.ok) lastMsg = res.msg;
