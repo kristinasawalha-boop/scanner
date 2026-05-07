@@ -199,7 +199,7 @@ select.inp{appearance:auto}
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbwB70t3sRgFJAoPLpCKbRhdVmf4keF3rvUdF8sjQbFKhhYaFtt1DxBwOGXCPjVZXYT6Ag/exec';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbw-mYEZE9k0KKhCWhy45Bf3WArNJ276AcoHeYxI_ZFqQMJ8GBGQyPB1gR-BzGiJ43sT5w/exec';
 
 var currentTab     = 'receive';
 var currentDispatchClient    = '';
@@ -349,8 +349,7 @@ function loadRequests() {
       var endClient = it.endClientName || it.clientName || '';
       return '<div class="request-card">'+
         '<div class="rc-header">'+esc(it.requestor)+' — '+esc(it.timestamp)+'</div>'+
-        '<div class="rc-client">'+esc(it.clientName)+'</div>'+
-        (endClient?'<div class="rc-endclient">📦 Deliver to: <strong>'+esc(endClient)+'</strong></div>':'')+
+        '<div class="rc-endclient">📦 <strong>'+esc(endClient||it.clientName)+'</strong></div>'+
         lineHtml+
         '<button class="btn-sm" style="margin-top:8px" onclick="selectRequest(\''+esc(it.clientName)+'\',\''+esc(endClient)+'\',\''+lineItemsJson+'\')">Start Scanning</button>'+
       '</div>';
@@ -362,10 +361,12 @@ function selectRequest(clientName, endClientName, lineItemsJson) {
   currentDispatchClient    = clientName;
   currentDispatchEndClient = endClientName;
   try { currentRequestLineItems = JSON.parse(lineItemsJson); } catch(e) { currentRequestLineItems = []; }
-  document.getElementById('dispatch-client-label').textContent = clientName;
+  // Show deliver-to only once
+  var deliverLabel = (endClientName && endClientName.toLowerCase() !== clientName.toLowerCase()) ? endClientName : clientName;
+  document.getElementById('dispatch-client-label').textContent = '';
   var ecEl = document.getElementById('dispatch-endclient-label');
-  if (endClientName) { ecEl.textContent = '📦 Deliver to: ' + endClientName; ecEl.style.display='block'; }
-  else { ecEl.style.display='none'; }
+  ecEl.textContent = '📦 Deliver to: ' + deliverLabel;
+  ecEl.style.display = 'block';
   document.getElementById('dispatch-scan-card').style.display='block';
   if (currentRequestLineItems.length) {
     var qInfo = document.getElementById('qty-info');
