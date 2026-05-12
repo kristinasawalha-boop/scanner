@@ -71,7 +71,7 @@ select.inp{appearance:auto}
 .request-card .rc-desc{font-size:13px;font-weight:600;color:#222;flex:1}
 .request-card .rc-loc{font-size:11px;color:#e07000;font-weight:700;flex-shrink:0}
 .request-card .rc-meta{font-size:11px;color:#888;margin-top:6px}
-.sig-wrap{border:2px solid #007B7B;border-radius:8px;background:#f8fffe;overflow:hidden;position:relative;margin-bottom:6px;height:160px}
+.sig-wrap{border:2px solid #007B7B;border-radius:8px;background:#fff;overflow:hidden;position:relative;margin-bottom:6px;height:160px}
 .sig-wrap canvas{position:absolute;top:0;left:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
 .sig-clear{position:absolute;top:6px;right:8px;background:#fff;border:1px solid #c8dede;border-radius:5px;padding:3px 8px;font-size:12px;color:#c02020;font-weight:700;cursor:pointer;z-index:2}
 .sig-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;color:#aaa;pointer-events:none;z-index:1}
@@ -206,7 +206,7 @@ select.inp{appearance:auto}
 
 <div class="toast" id="toast"></div>
 <script>
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbzeAETS90QCplHMLS-LNWW1nJqlBkySYBQP18mxRoQ5i7-4qhEsbHqjBi_RKg6NG_CVIw/exec';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbx-MBUbErB8lCdDuAgXAW73IQ3fStkMpuyfleN7YXKHeBz7VUry-mtIjduAkVi4IsUo2A/exec';
 
 var currentTab='receive', currentDispatchClient='', currentRequestLineItems=[], allRequests=[];
 var pendingItems=[], savedItems=[], dispatchedItems=[], atDispatchList=[], atDispatchConfirmed={};
@@ -222,17 +222,15 @@ window.addEventListener('load', function() {
     document.getElementById('pu-giv').value = nextGiv;
   });
   loadPickupClients();
-  // Delay signature pad init to ensure canvas is rendered
-  setTimeout(initSignaturePad, 300);
+  setTimeout(initSignaturePad, 400);
 });
 
 function initSignaturePad() {
   sigCanvas = document.getElementById('sig-canvas');
   if (!sigCanvas) return;
   var wrap = document.getElementById('sig-wrap');
-  // Set actual pixel dimensions from the wrapper
-  var w = wrap.offsetWidth;
-  var h = wrap.offsetHeight;
+  var w = wrap.offsetWidth || 320;
+  var h = wrap.offsetHeight || 160;
   var dpr = window.devicePixelRatio || 1;
   sigCanvas.width  = w * dpr;
   sigCanvas.height = h * dpr;
@@ -240,7 +238,10 @@ function initSignaturePad() {
   sigCanvas.style.height = h + 'px';
   sigCtx = sigCanvas.getContext('2d');
   sigCtx.scale(dpr, dpr);
-  sigCtx.strokeStyle = '#111';
+  // White background
+  sigCtx.fillStyle = '#ffffff';
+  sigCtx.fillRect(0, 0, w, h);
+  sigCtx.strokeStyle = '#111111';
   sigCtx.lineWidth   = 2.5;
   sigCtx.lineCap     = 'round';
   sigCtx.lineJoin    = 'round';
@@ -273,12 +274,16 @@ function initSignaturePad() {
   sigCanvas.addEventListener('mousedown',  startDraw);
   sigCanvas.addEventListener('touchstart', startDraw, {passive:false});
   sigCanvas.addEventListener('mouseup',    endDraw);
+  sigCanvas.addEventListener('mouseleave', endDraw);
   sigCanvas.addEventListener('touchend',   endDraw);
 }
 
 function clearSignature() {
-  if (!sigCtx) return;
-  sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+  if (!sigCtx || !sigCanvas) return;
+  var w = sigCanvas.width / (window.devicePixelRatio || 1);
+  var h = sigCanvas.height / (window.devicePixelRatio || 1);
+  sigCtx.fillStyle = '#ffffff';
+  sigCtx.fillRect(0, 0, w, h);
   sigHasMark = false;
   document.getElementById('sig-hint').style.display = 'block';
 }
@@ -290,7 +295,7 @@ function switchTab(tab) {
     document.getElementById('screen-'+t).classList.toggle('active', t===tab);
   });
   if (tab === 'dispatch') loadRequests();
-  if (tab === 'pickup') { loadPickupClients(); setTimeout(initSignaturePad, 200); }
+  if (tab === 'pickup') { loadPickupClients(); setTimeout(initSignaturePad, 300); }
 }
 
 function callGAS(action, params, cb) {
@@ -309,19 +314,20 @@ function autoSave(type, items, clientName) {
   });
 }
 
+// ===== RECEIVE =====
 function doReceiveScan() {
   var stock=document.getElementById('grv-stock').value;
-  if (!stock){toast('Select stock sheet first','warn');return;}
+  if(!stock){toast('Select stock sheet first','warn');return;}
   var serial=document.getElementById('receive-serial').value.trim();
-  if (!serial){toast('Enter Serial No','err');return;}
+  if(!serial){toast('Enter Serial No','err');return;}
   var pallet=document.getElementById('recv-pallet').value.trim();
   var resEl=document.getElementById('receive-result');
-  if (pendingItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})||savedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})) {
-    toast('Already added: '+serial,'warn'); document.getElementById('receive-serial').value=''; return;
+  if(pendingItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})||savedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})){
+    toast('Already added: '+serial,'warn');document.getElementById('receive-serial').value='';return;
   }
-  callGAS('lookupIncoming', {serial:serial, stockSheet:stock}, function(res) {
-    if (!res.ok) { resEl.innerHTML='<div class="alert-box err">'+esc(res.msg)+'</div>'; document.getElementById('receive-serial').value=''; return; }
-    pendingItems.push({serial:serial, description:res.description||'', paletteNo:pallet||res.paletteNo||'', stockSheet:res.stockSheet||stock, rowIndex:res.rowIndex||0});
+  callGAS('lookupIncoming',{serial:serial,stockSheet:stock},function(res){
+    if(!res.ok){resEl.innerHTML='<div class="alert-box err">'+esc(res.msg)+'</div>';document.getElementById('receive-serial').value='';return;}
+    pendingItems.push({serial:serial,description:res.description||'',paletteNo:pallet||res.paletteNo||'',stockSheet:res.stockSheet||stock,rowIndex:res.rowIndex||0});
     renderReceivedList();
     var cls=res.flagged?'warn':'ok';
     var msg=res.flagged?'Not on advance list'+(res.description?' — '+esc(res.description):''):esc(res.description)+(pallet?' — Pallet '+esc(pallet):'');
@@ -332,17 +338,15 @@ function doReceiveScan() {
 }
 
 function saveProgress() {
-  if (!pendingItems.length){toast('No pending items','warn');return;}
+  if(!pendingItems.length){toast('No pending items','warn');return;}
   var stock=document.getElementById('grv-stock').value;
-  if (!stock){toast('Select stock sheet first','warn');return;}
+  if(!stock){toast('Select stock sheet first','warn');return;}
   var btn=document.getElementById('btn-save-progress');
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>';
   callGAS('saveReceivedBatch',{stockSheet:stock,sessionId:RECV_SESSION,supplierName:document.getElementById('grv-supplier').value.trim(),items:pendingItems},function(res){
-    btn.disabled=false; btn.innerHTML='Save Progress (this pallet)';
-    if (res.ok) {
-      (res.items||[]).forEach(function(w){var m=pendingItems.find(function(p){return p.serial.toUpperCase()===w.serial.toUpperCase();});if(m){m.rowIndex=w.rowIndex;m.saved=true;savedItems.push(m);}});
-      pendingItems=[]; renderReceivedList(); toast(res.msg,'ok');
-    } else { toast(res.msg||'Save failed','err'); }
+    btn.disabled=false;btn.innerHTML='Save Progress (this pallet)';
+    if(res.ok){(res.items||[]).forEach(function(w){var m=pendingItems.find(function(p){return p.serial.toUpperCase()===w.serial.toUpperCase();});if(m){m.rowIndex=w.rowIndex;m.saved=true;savedItems.push(m);}});pendingItems=[];renderReceivedList();toast(res.msg,'ok');}
+    else{toast(res.msg||'Save failed','err');}
   });
 }
 
@@ -350,11 +354,11 @@ function renderReceivedList() {
   var el=document.getElementById('received-list');
   var total=pendingItems.length+savedItems.length;
   document.getElementById('recv-pending-count').textContent=pendingItems.length;
-  var sb=document.getElementById('recv-saved-count'), sl=document.getElementById('recv-saved-label');
-  if (savedItems.length){sb.textContent=savedItems.length;sb.style.display='inline-block';sl.style.display='inline';}
+  var sb=document.getElementById('recv-saved-count'),sl=document.getElementById('recv-saved-label');
+  if(savedItems.length){sb.textContent=savedItems.length;sb.style.display='inline-block';sl.style.display='inline';}
   else{sb.style.display='none';sl.style.display='none';}
   document.getElementById('receive-actions').style.display=total?'block':'none';
-  if (!total){el.innerHTML='';return;}
+  if(!total){el.innerHTML='';return;}
   var html='';
   savedItems.forEach(function(it){html+='<div class="item-row saved"><div class="item-body"><div class="ds">'+esc(it.description)+'<span class="saved-badge">saved</span></div><div class="sn">'+esc(it.serial)+'</div>'+(it.paletteNo?'<div class="pal">Pallet '+esc(it.paletteNo)+'</div>':'')+'</div></div>';});
   pendingItems.forEach(function(it,i){html+='<div class="item-row"><div class="item-body"><div class="ds">'+esc(it.description||'unknown')+'</div><div class="sn">'+esc(it.serial)+'</div>'+(it.paletteNo?'<div class="pal">Pallet '+esc(it.paletteNo)+'</div>':'')+'</div><button class="rm-btn" data-idx="'+i+'" onclick="removePending(this.dataset.idx)">x</button></div>';});
@@ -365,28 +369,29 @@ function removePending(idx){pendingItems.splice(parseInt(idx),1);renderReceivedL
 
 function confirmAllReceived() {
   var total=pendingItems.length+savedItems.length;
-  if (!total){toast('No items scanned','err');return;}
+  if(!total){toast('No items scanned','err');return;}
   var stock=document.getElementById('grv-stock').value;
-  if (!stock){toast('Select stock sheet first','err');return;}
-  if (pendingItems.length) {
+  if(!stock){toast('Select stock sheet first','err');return;}
+  if(pendingItems.length){
     callGAS('saveReceivedBatch',{stockSheet:stock,sessionId:RECV_SESSION,supplierName:document.getElementById('grv-supplier').value.trim(),items:pendingItems},function(res){
       if(res.ok){(res.items||[]).forEach(function(w){var m=pendingItems.find(function(p){return p.serial.toUpperCase()===w.serial.toUpperCase();});if(m){m.rowIndex=w.rowIndex;savedItems.push(m);}});pendingItems=[];doConfirmAll(stock);}
       else{toast(res.msg||'Save failed','err');}
     });
-  } else { doConfirmAll(stock); }
+  } else{doConfirmAll(stock);}
 }
 
-function doConfirmAll(stock) {
+function doConfirmAll(stock){
   var btn=document.getElementById('btn-confirm-all');
-  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>';
   callGAS('confirmReceive',{stockSheet:stock,sessionId:RECV_SESSION,supplierName:document.getElementById('grv-supplier').value.trim(),dateIn:document.getElementById('grv-date').value,remarks:document.getElementById('grv-remarks').value.trim(),items:savedItems},function(res){
-    btn.disabled=false; btn.innerHTML='Confirm All &amp; Generate GRV';
+    btn.disabled=false;btn.innerHTML='Confirm All &amp; Generate GRV';
     if(res.ok){toast(res.msg,'ok');pendingItems=[];savedItems=[];renderReceivedList();document.getElementById('receive-result').innerHTML='';document.getElementById('grv-supplier').value='';document.getElementById('recv-pallet').value='';nextGrv++;document.getElementById('grv-no').value=nextGrv;}
     else{toast(res.msg,'err');}
   });
 }
 
-function loadRequests() {
+// ===== DISPATCH =====
+function loadRequests(){
   document.getElementById('requests-list').innerHTML='<div class="empty-state">Loading...</div>';
   callGAS('getMaterialRequests',{},function(res){
     var el=document.getElementById('requests-list');
@@ -400,23 +405,50 @@ function loadRequests() {
   });
 }
 
-function selectRequest(idx){var it=allRequests[idx];if(!it)return;currentDispatchClient=it.clientName;currentRequestLineItems=it.lineItems||[];document.getElementById('dispatch-client-display').textContent=it.endClientName||it.clientName||'';document.getElementById('dispatch-scan-card').style.display='block';dispatchedItems=[];renderDispatchedList();document.getElementById('dispatch-serial').focus();}
+function selectRequest(idx){
+  var it=allRequests[idx];if(!it)return;
+  currentDispatchClient=it.clientName;
+  currentRequestLineItems=it.lineItems||[];
+  document.getElementById('dispatch-client-display').textContent=it.endClientName||it.clientName||'';
+  document.getElementById('dispatch-scan-card').style.display='block';
+  dispatchedItems=[];renderDispatchedList();
+  document.getElementById('dispatch-serial').focus();
+}
 
-function doDispatchScan() {
+function doDispatchScan(){
   if(!currentDispatchClient){toast('Select a request first','err');return;}
   var serial=document.getElementById('dispatch-serial').value.trim();
   if(!serial){toast('Enter Serial No','err');return;}
   var resEl=document.getElementById('dispatch-result');
-  if(dispatchedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})){toast('Already added: '+serial,'warn');document.getElementById('dispatch-serial').value='';return;}
+  if(dispatchedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})){
+    toast('Already added: '+serial,'warn');document.getElementById('dispatch-serial').value='';return;
+  }
   callGAS('scanDispatch',{serial:serial,clientName:currentDispatchClient},function(res){
     if(res.ok&&res.found){
+      // BLOCK if item not in request — CRITICAL
       if(currentRequestLineItems&&currentRequestLineItems.length>0){
         var fn=function(s){return s.toLowerCase().replace(/\s+/g,'').replace(/[-_]/g,'');};
-        var ml=null;
-        currentRequestLineItems.forEach(function(l){var lN=fn(l.description);if(fn(res.description).indexOf(lN.substring(0,10))>=0||lN.indexOf(fn(res.description).substring(0,10))>=0)ml=l;});
-        if(ml){var al=dispatchedItems.filter(function(it){return fn(it.description).indexOf(fn(ml.description).substring(0,10))>=0;}).length;if(al>=parseInt(ml.quantity)){resEl.innerHTML='<div class="alert-box err">QUANTITY EXCEEDED: '+al+'/'+ml.quantity+' of '+esc(ml.description)+'</div>';document.getElementById('dispatch-serial').value='';return;}}
+        var matchedLine=null;
+        currentRequestLineItems.forEach(function(l){
+          var lN=fn(l.description);
+          if(fn(res.description).indexOf(lN.substring(0,10))>=0||lN.indexOf(fn(res.description).substring(0,10))>=0)matchedLine=l;
+        });
+        if(!matchedLine){
+          // HARD BLOCK — item not in this request
+          resEl.innerHTML='<div class="alert-box err">BLOCKED: '+esc(res.description)+' is not in this request. Nothing can leave without matching the request.</div>';
+          document.getElementById('dispatch-serial').value='';return;
+        }
+        var already=dispatchedItems.filter(function(it){return fn(it.description).indexOf(fn(matchedLine.description).substring(0,10))>=0;}).length;
+        if(already>=parseInt(matchedLine.quantity)){
+          resEl.innerHTML='<div class="alert-box err">QUANTITY EXCEEDED: '+already+'/'+matchedLine.quantity+' of '+esc(matchedLine.description)+'</div>';
+          document.getElementById('dispatch-serial').value='';return;
+        }
       }
-      if(res.fifoWarning){pendingFifoItem={rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location};resEl.innerHTML='<div class="alert-box warn">FIFO: '+esc(res.fifoWarning)+'</div><button class="btn-main amber" style="margin-top:6px" onclick="addFifoItem()">Use anyway</button><button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Scan older</button>';document.getElementById('dispatch-serial').value='';return;}
+      if(res.fifoWarning){
+        pendingFifoItem={rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location};
+        resEl.innerHTML='<div class="alert-box warn">FIFO: '+esc(res.fifoWarning)+'</div><button class="btn-main amber" style="margin-top:6px" onclick="addFifoItem()">Use anyway</button><button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Scan older</button>';
+        document.getElementById('dispatch-serial').value='';return;
+      }
       dispatchedItems.push({rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location});
       renderDispatchedList();
       resEl.innerHTML='<div class="alert-box ok">'+esc(res.description)+(res.location?' — '+esc(res.location):'')+'</div>';
@@ -461,6 +493,7 @@ function printDispatchLabel(){
   var w=window.open('','_blank');w.document.write(html);w.document.close();
 }
 
+// ===== PICKUP =====
 function enterDriverName(){
   var name=window.prompt('Enter driver name:',document.getElementById('pu-driver').value||'');
   if(name!==null){name=name.trim();document.getElementById('pu-driver').value=name;document.getElementById('driver-name-display').textContent=name;var btn=document.getElementById('driver-name-btn');btn.style.borderColor=name?'#065f46':'#007B7B';btn.style.color=name?'#065f46':'#007B7B';}
@@ -488,7 +521,7 @@ function loadAtDispatch(){
     document.getElementById('pickup-details-card').style.display=h?'block':'none';
     document.getElementById('dispatch-count').textContent=atDispatchList.length;
     if(!h)toast('No items at dispatch for this client','warn');
-    if(h)setTimeout(initSignaturePad,200);
+    if(h)setTimeout(initSignaturePad,300);
   });
 }
 
@@ -520,33 +553,46 @@ function submitPickup(){
   var toConfirm=atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});
   if(!toConfirm.length){toast('Scan or tick at least one item','err');return;}
   setBusy('btn-confirm-pickup',true);
+
+  // White background before capture
+  var w=sigCanvas.width/(window.devicePixelRatio||1);
+  var h=sigCanvas.height/(window.devicePixelRatio||1);
+  sigCtx.globalCompositeOperation='destination-over';
+  sigCtx.fillStyle='#ffffff';
+  sigCtx.fillRect(0,0,w,h);
+  sigCtx.globalCompositeOperation='source-over';
   var sigData=sigCanvas.toDataURL('image/png');
+
   var sharedGivNo=parseInt(document.getElementById('pu-giv').value)||nextGiv;
-  var sheetGroups={};
-  toConfirm.forEach(function(it){var s=it.stockSheet||'Huawei Stock';if(!sheetGroups[s])sheetGroups[s]=[];sheetGroups[s].push(it);});
-  var sheets=Object.keys(sheetGroups),completed=0,lastMsg='';
-  sheets.forEach(function(sheet){
-    callGAS('confirmPickup',{stockSheet:sheet,clientName:client,driverName:driver,licensePlate:plate,vehicleType:vehicle,givNo:sharedGivNo,items:sheetGroups[sheet],signatureBase64:sigData},function(res){
-      completed++;
-      if(res.ok)lastMsg=res.msg;
-      if(completed===sheets.length){
-        setBusy('btn-confirm-pickup',false,'Confirm Pickup &amp; Generate GIV');
-        toast(lastMsg||'GIV confirmed','ok');
-        callGAS('clearSession',{sessionId:PICKUP_SESSION},function(){});
-        document.getElementById('pu-driver').value='';
-        document.getElementById('driver-name-display').textContent='';
-        document.getElementById('driver-name-btn').style.borderColor='#007B7B';
-        document.getElementById('driver-name-btn').style.color='#007B7B';
-        document.getElementById('pu-plate').value='';
-        document.getElementById('pu-vehicle').value='';
-        clearSignature();
-        nextGiv++;document.getElementById('pu-giv').value=nextGiv;
-        atDispatchConfirmed={};atDispatchList=[];renderAtDispatchList();
-        document.getElementById('at-dispatch-card').style.display='none';
-        document.getElementById('pickup-details-card').style.display='none';
-        loadPickupClients();
-      }
-    });
+
+  // Single call — all items regardless of stock sheet
+  callGAS('confirmPickup',{
+    clientName:client,
+    driverName:driver,
+    licensePlate:plate,
+    vehicleType:vehicle,
+    givNo:sharedGivNo,
+    items:toConfirm,
+    signatureBase64:sigData
+  },function(res){
+    setBusy('btn-confirm-pickup',false,'Confirm Pickup &amp; Generate GIV');
+    if(res.ok){
+      toast(res.msg,'ok');
+      callGAS('clearSession',{sessionId:PICKUP_SESSION},function(){});
+      document.getElementById('pu-driver').value='';
+      document.getElementById('driver-name-display').textContent='';
+      document.getElementById('driver-name-btn').style.borderColor='#007B7B';
+      document.getElementById('driver-name-btn').style.color='#007B7B';
+      document.getElementById('pu-plate').value='';
+      document.getElementById('pu-vehicle').value='';
+      clearSignature();
+      nextGiv++;document.getElementById('pu-giv').value=nextGiv;
+      atDispatchConfirmed={};atDispatchList=[];
+      renderAtDispatchList();
+      document.getElementById('at-dispatch-card').style.display='none';
+      document.getElementById('pickup-details-card').style.display='none';
+      loadPickupClients();
+    } else{toast(res.msg,'err');}
   });
 }
 
