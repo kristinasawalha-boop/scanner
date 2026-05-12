@@ -27,7 +27,6 @@ select.inp{appearance:auto}
 .btn-main.amber{background:#92660a}
 .btn-main.grey{background:#777}
 .btn-main.green{background:#065f46}
-.btn-main.teal{background:#007B7B}
 .btn-main.blue{background:#1d4ed8}
 .btn-main:disabled{background:#b0c8c8;cursor:not-allowed}
 .btn-sm{padding:8px 14px;background:#e0f2f2;border:none;border-radius:7px;color:#007B7B;font-size:13px;font-weight:700;cursor:pointer}
@@ -72,6 +71,9 @@ select.inp{appearance:auto}
 .request-card .rc-desc{font-size:13px;font-weight:600;color:#222;flex:1}
 .request-card .rc-loc{font-size:11px;color:#e07000;font-weight:700;flex-shrink:0}
 .request-card .rc-meta{font-size:11px;color:#888;margin-top:6px}
+.sig-wrap{border:2px solid #c8dede;border-radius:8px;background:#fff;position:relative;margin-bottom:8px}
+.sig-wrap canvas{display:block;width:100%;height:160px;touch-action:none}
+.sig-clear{position:absolute;top:6px;right:8px;background:none;border:none;font-size:12px;color:#c02020;font-weight:700;cursor:pointer}
 @media print{.hdr,.tabs,.toast,.btn-main,.btn-sm,.scan-row,.rm-btn,.tick-btn{display:none!important}.screen{display:block!important;padding:0!important}.card{box-shadow:none;border:1px solid #ccc;margin-bottom:8px}}
 </style>
 </head>
@@ -176,11 +178,8 @@ select.inp{appearance:auto}
       </button>
       <input type="hidden" id="pu-driver">
     </div>
-    <div class="frow">
-      <div class="lbl">License Plate *</div>
-      <input class="inp" id="pu-plate" type="text" placeholder="Type plate or use camera" autocomplete="off" style="margin-bottom:6px">
-      <label for="plate-file" style="display:block;width:100%;padding:11px;background:#e0f2f2;border:1.5px solid #007B7B;border-radius:8px;color:#007B7B;font-size:14px;font-weight:700;cursor:pointer;text-align:center">Take Photo of Plate</label>
-      <input type="file" id="plate-file" accept="image/*" capture="environment" style="display:none" onchange="processPlatePhoto(this)">
+    <div class="frow"><div class="lbl">License Plate *</div>
+      <input class="inp" id="pu-plate" type="text" placeholder="Type license plate" autocomplete="off">
     </div>
     <div class="frow"><div class="lbl">Vehicle Type *</div>
       <select class="inp" id="pu-vehicle">
@@ -191,14 +190,21 @@ select.inp{appearance:auto}
       </select>
     </div>
     <div class="frow"><div class="lbl">GIV Number (auto)</div><input class="inp" id="pu-giv" type="number" placeholder="Auto-generated"></div>
+    <div class="frow">
+      <div class="lbl">Driver Signature *</div>
+      <div class="sig-wrap">
+        <canvas id="sig-canvas"></canvas>
+        <button class="sig-clear" onclick="clearSignature()">Clear</button>
+      </div>
+      <div style="font-size:11px;color:#888">Driver signs above with finger</div>
+    </div>
     <button class="btn-main dark" id="btn-confirm-pickup" onclick="submitPickup()">Confirm Pickup &amp; Generate GIV</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbyLDi3RAsbM-cdP4rpDy3xt9FYqxreQgvohjcYNU-eSHdL7Bj4iRIAAYR935THt4Nqyhw/exec';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbzgqpRnJ_AKHVsalJ8xxEZ-F9REnuPkfHOicPKGmxwURxYIfdyJiyF4J76QPw34mSK1bA/exec';
 
 var currentTab              = 'receive';
 var currentDispatchClient   = '';
@@ -216,6 +222,9 @@ var RECV_SESSION   = 'recv-'    + Date.now();
 var DISP_SESSION   = 'dispatch-'+ Date.now();
 var PICKUP_SESSION = 'pickup-'  + Date.now();
 
+// Signature pad
+var sigCanvas, sigCtx, sigDrawing = false, sigHasMark = false;
+
 window.addEventListener('load', function() {
   document.getElementById('grv-date').value = new Date().toISOString().split('T')[0];
   callGAS('getConfig', {}, function(cfg) {
@@ -225,7 +234,43 @@ window.addEventListener('load', function() {
     document.getElementById('pu-giv').value = nextGiv;
   });
   loadPickupClients();
+  initSignaturePad();
 });
+
+function initSignaturePad() {
+  sigCanvas = document.getElementById('sig-canvas');
+  sigCtx    = sigCanvas.getContext('2d');
+  // Set canvas resolution to match display size
+  function resize() {
+    var rect = sigCanvas.getBoundingClientRect();
+    sigCanvas.width  = rect.width  * window.devicePixelRatio;
+    sigCanvas.height = rect.height * window.devicePixelRatio;
+    sigCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    sigCtx.strokeStyle = '#111';
+    sigCtx.lineWidth   = 2.5;
+    sigCtx.lineCap     = 'round';
+    sigCtx.lineJoin    = 'round';
+  }
+  resize();
+
+  function getPos(e) {
+    var rect = sigCanvas.getBoundingClientRect();
+    var src  = e.touches ? e.touches[0] : e;
+    return {x: src.clientX - rect.left, y: src.clientY - rect.top};
+  }
+  sigCanvas.addEventListener('mousedown',  function(e){sigDrawing=true;sigCtx.beginPath();var p=getPos(e);sigCtx.moveTo(p.x,p.y);});
+  sigCanvas.addEventListener('mousemove',  function(e){if(!sigDrawing)return;var p=getPos(e);sigCtx.lineTo(p.x,p.y);sigCtx.stroke();sigHasMark=true;});
+  sigCanvas.addEventListener('mouseup',    function(){sigDrawing=false;});
+  sigCanvas.addEventListener('touchstart', function(e){e.preventDefault();sigDrawing=true;sigCtx.beginPath();var p=getPos(e);sigCtx.moveTo(p.x,p.y);},{passive:false});
+  sigCanvas.addEventListener('touchmove',  function(e){e.preventDefault();if(!sigDrawing)return;var p=getPos(e);sigCtx.lineTo(p.x,p.y);sigCtx.stroke();sigHasMark=true;},{passive:false});
+  sigCanvas.addEventListener('touchend',   function(){sigDrawing=false;});
+}
+
+function clearSignature() {
+  var rect = sigCanvas.getBoundingClientRect();
+  sigCtx.clearRect(0, 0, rect.width, rect.height);
+  sigHasMark = false;
+}
 
 function switchTab(tab) {
   currentTab = tab;
@@ -276,9 +321,7 @@ function doReceiveScan() {
     pendingItems.push(item);
     renderReceivedList();
     var alertClass = res.flagged ? 'warn' : 'ok';
-    var alertMsg = res.flagged
-      ? 'Not on advance list'+(res.description?' — '+esc(res.description):'')
-      : esc(res.description)+(pallet?' — Pallet '+esc(pallet):'');
+    var alertMsg   = res.flagged ? 'Not on advance list'+(res.description?' — '+esc(res.description):'') : esc(res.description)+(pallet?' — Pallet '+esc(pallet):'');
     resEl.innerHTML = '<div class="alert-box '+alertClass+'">'+alertMsg+'</div>';
     document.getElementById('receive-serial').value='';
     setTimeout(function(){resEl.innerHTML='';}, 3500);
@@ -290,15 +333,15 @@ function saveProgress() {
   var stock = document.getElementById('grv-stock').value;
   if (!stock) { toast('Select stock sheet first','warn'); return; }
   var btn = document.getElementById('btn-save-progress');
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
   callGAS('saveReceivedBatch', {stockSheet:stock, sessionId:RECV_SESSION, supplierName:document.getElementById('grv-supplier').value.trim(), items:pendingItems}, function(res) {
-    btn.disabled = false; btn.innerHTML = 'Save Progress (this pallet)';
+    btn.disabled=false; btn.innerHTML='Save Progress (this pallet)';
     if (res.ok) {
       (res.items||[]).forEach(function(w) {
         var match = pendingItems.find(function(p){ return p.serial.toUpperCase()===w.serial.toUpperCase(); });
         if (match) { match.rowIndex=w.rowIndex; match.saved=true; savedItems.push(match); }
       });
-      pendingItems = [];
+      pendingItems=[];
       renderReceivedList();
       toast(res.msg,'ok');
     } else { toast(res.msg||'Save failed','err'); }
@@ -315,20 +358,17 @@ function renderReceivedList() {
   else { sb.style.display='none'; sl.style.display='none'; }
   document.getElementById('receive-actions').style.display = total ? 'block':'none';
   if (!total) { el.innerHTML=''; return; }
-  var html = '';
+  var html='';
   savedItems.forEach(function(it) {
-    html += '<div class="item-row saved"><div class="item-body"><div class="ds">'+esc(it.description)+'<span class="saved-badge">saved</span></div><div class="sn">'+esc(it.serial)+'</div>'+(it.paletteNo?'<div class="pal">Pallet '+esc(it.paletteNo)+'</div>':'')+'</div></div>';
+    html+='<div class="item-row saved"><div class="item-body"><div class="ds">'+esc(it.description)+'<span class="saved-badge">saved</span></div><div class="sn">'+esc(it.serial)+'</div>'+(it.paletteNo?'<div class="pal">Pallet '+esc(it.paletteNo)+'</div>':'')+'</div></div>';
   });
-  pendingItems.forEach(function(it, i) {
-    html += '<div class="item-row"><div class="item-body"><div class="ds">'+esc(it.description||'unknown')+'</div><div class="sn">'+esc(it.serial)+'</div>'+(it.paletteNo?'<div class="pal">Pallet '+esc(it.paletteNo)+'</div>':'')+'</div><button class="rm-btn" data-idx="'+i+'" onclick="removePending(this.dataset.idx)">x</button></div>';
+  pendingItems.forEach(function(it,i) {
+    html+='<div class="item-row"><div class="item-body"><div class="ds">'+esc(it.description||'unknown')+'</div><div class="sn">'+esc(it.serial)+'</div>'+(it.paletteNo?'<div class="pal">Pallet '+esc(it.paletteNo)+'</div>':'')+'</div><button class="rm-btn" data-idx="'+i+'" onclick="removePending(this.dataset.idx)">x</button></div>';
   });
-  el.innerHTML = html;
+  el.innerHTML=html;
 }
 
-function removePending(idx) {
-  pendingItems.splice(parseInt(idx), 1);
-  renderReceivedList();
-}
+function removePending(idx) { pendingItems.splice(parseInt(idx),1); renderReceivedList(); }
 
 function confirmAllReceived() {
   var total = pendingItems.length + savedItems.length;
@@ -339,10 +379,10 @@ function confirmAllReceived() {
     callGAS('saveReceivedBatch', {stockSheet:stock, sessionId:RECV_SESSION, supplierName:document.getElementById('grv-supplier').value.trim(), items:pendingItems}, function(res) {
       if (res.ok) {
         (res.items||[]).forEach(function(w) {
-          var match = pendingItems.find(function(p){ return p.serial.toUpperCase()===w.serial.toUpperCase(); });
-          if (match) { match.rowIndex=w.rowIndex; savedItems.push(match); }
+          var match=pendingItems.find(function(p){return p.serial.toUpperCase()===w.serial.toUpperCase();});
+          if(match){match.rowIndex=w.rowIndex;savedItems.push(match);}
         });
-        pendingItems = [];
+        pendingItems=[];
         doConfirmAll(stock);
       } else { toast(res.msg||'Save failed','err'); }
     });
@@ -350,7 +390,7 @@ function confirmAllReceived() {
 }
 
 function doConfirmAll(stock) {
-  var btn = document.getElementById('btn-confirm-all');
+  var btn=document.getElementById('btn-confirm-all');
   btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
   callGAS('confirmReceive', {stockSheet:stock, sessionId:RECV_SESSION, supplierName:document.getElementById('grv-supplier').value.trim(), dateIn:document.getElementById('grv-date').value, remarks:document.getElementById('grv-remarks').value.trim(), items:savedItems}, function(res) {
     btn.disabled=false; btn.innerHTML='Confirm All &amp; Generate GRV';
@@ -367,19 +407,15 @@ function doConfirmAll(stock) {
 }
 
 function loadRequests() {
-  document.getElementById('requests-list').innerHTML = '<div class="empty-state">Loading...</div>';
+  document.getElementById('requests-list').innerHTML='<div class="empty-state">Loading...</div>';
   callGAS('getMaterialRequests', {}, function(res) {
-    var el = document.getElementById('requests-list');
-    allRequests = res.items || [];
-    if (!allRequests.length) {
-      el.innerHTML='<div class="empty-state">No pending requests.</div>';
-      document.getElementById('dispatch-scan-card').style.display='none';
-      return;
-    }
-    el.innerHTML = allRequests.map(function(it, idx) {
-      var clientLabel = it.endClientName || it.clientName || '';
-      var lineHtml = (it.lineItems||[]).map(function(l){
-        var locHtml = l.location ? '<span class="rc-loc"> '+esc(l.location)+'</span>' : '';
+    var el=document.getElementById('requests-list');
+    allRequests=res.items||[];
+    if (!allRequests.length) { el.innerHTML='<div class="empty-state">No pending requests.</div>'; document.getElementById('dispatch-scan-card').style.display='none'; return; }
+    el.innerHTML=allRequests.map(function(it,idx) {
+      var clientLabel=it.endClientName||it.clientName||'';
+      var lineHtml=(it.lineItems||[]).map(function(l){
+        var locHtml=l.location?'<span class="rc-loc"> '+esc(l.location)+'</span>':'';
         return '<div class="rc-line"><span class="rc-qty">'+esc(l.quantity||1)+'</span><span class="rc-desc">'+esc(l.description)+'</span>'+locHtml+'</div>';
       }).join('');
       return '<div class="request-card"><div class="rc-client">'+esc(clientLabel)+'</div>'+lineHtml+'<div class="rc-meta">By '+esc(it.requestor)+' — '+esc(it.timestamp)+'</div><button class="btn-sm" style="margin-top:8px" data-idx="'+idx+'" onclick="selectRequest(parseInt(this.dataset.idx))">Start Scanning</button></div>';
@@ -388,12 +424,10 @@ function loadRequests() {
 }
 
 function selectRequest(idx) {
-  var it = allRequests[idx];
-  if (!it) return;
-  currentDispatchClient = it.clientName;
-  currentRequestLineItems = it.lineItems || [];
-  var clientLabel = it.endClientName || it.clientName || '';
-  document.getElementById('dispatch-client-display').textContent = clientLabel;
+  var it=allRequests[idx]; if(!it)return;
+  currentDispatchClient=it.clientName;
+  currentRequestLineItems=it.lineItems||[];
+  document.getElementById('dispatch-client-display').textContent=it.endClientName||it.clientName||'';
   document.getElementById('dispatch-scan-card').style.display='block';
   dispatchedItems=[]; renderDispatchedList();
   document.getElementById('dispatch-serial').focus();
@@ -401,227 +435,166 @@ function selectRequest(idx) {
 
 function doDispatchScan() {
   if (!currentDispatchClient) { toast('Select a request first','err'); return; }
-  var serial = document.getElementById('dispatch-serial').value.trim();
+  var serial=document.getElementById('dispatch-serial').value.trim();
   if (!serial) { toast('Enter Serial No','err'); return; }
-  var resEl = document.getElementById('dispatch-result');
-  if (dispatchedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})) {
-    toast('Already added: '+serial,'warn');
-    document.getElementById('dispatch-serial').value='';
-    return;
-  }
+  var resEl=document.getElementById('dispatch-result');
+  if (dispatchedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})) { toast('Already added: '+serial,'warn'); document.getElementById('dispatch-serial').value=''; return; }
   callGAS('scanDispatch', {serial:serial, clientName:currentDispatchClient}, function(res) {
     if (res.ok && res.found) {
-      if (currentRequestLineItems && currentRequestLineItems.length > 0) {
-        var fn = function(s){ return s.toLowerCase().replace(/\s+/g,'').replace(/[-_]/g,''); };
-        var resN = fn(res.description);
-        var matchedLine = null;
-        currentRequestLineItems.forEach(function(l) {
-          var lN = fn(l.description);
-          if (resN.indexOf(lN.substring(0,10)) >= 0 || lN.indexOf(resN.substring(0,10)) >= 0) matchedLine = l;
-        });
+      if (currentRequestLineItems && currentRequestLineItems.length>0) {
+        var fn=function(s){return s.toLowerCase().replace(/\s+/g,'').replace(/[-_]/g,'');};
+        var matchedLine=null;
+        currentRequestLineItems.forEach(function(l){var lN=fn(l.description);if(fn(res.description).indexOf(lN.substring(0,10))>=0||lN.indexOf(fn(res.description).substring(0,10))>=0)matchedLine=l;});
         if (matchedLine) {
-          var already = dispatchedItems.filter(function(it){ return fn(it.description).indexOf(fn(matchedLine.description).substring(0,10)) >= 0; }).length;
-          if (already >= parseInt(matchedLine.quantity)) {
-            resEl.innerHTML = '<div class="alert-box err">QUANTITY EXCEEDED: '+already+'/'+matchedLine.quantity+' of '+esc(matchedLine.description)+' already scanned</div>';
-            document.getElementById('dispatch-serial').value=''; return;
-          }
+          var already=dispatchedItems.filter(function(it){return fn(it.description).indexOf(fn(matchedLine.description).substring(0,10))>=0;}).length;
+          if (already>=parseInt(matchedLine.quantity)) { resEl.innerHTML='<div class="alert-box err">QUANTITY EXCEEDED: '+already+'/'+matchedLine.quantity+' of '+esc(matchedLine.description)+'</div>'; document.getElementById('dispatch-serial').value=''; return; }
         }
       }
       if (res.fifoWarning) {
-        pendingFifoItem = {rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location};
-        resEl.innerHTML = '<div class="alert-box warn">FIFO: '+esc(res.fifoWarning)+'</div><button class="btn-main amber" style="margin-top:6px" onclick="addFifoItem()">Use this item anyway</button><button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Scan older item instead</button>';
+        pendingFifoItem={rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location};
+        resEl.innerHTML='<div class="alert-box warn">FIFO: '+esc(res.fifoWarning)+'</div><button class="btn-main amber" style="margin-top:6px" onclick="addFifoItem()">Use anyway</button><button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Scan older</button>';
         document.getElementById('dispatch-serial').value=''; return;
       }
       dispatchedItems.push({rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location});
       renderDispatchedList();
-      resEl.innerHTML = '<div class="alert-box ok">'+esc(res.description)+(res.location?' — '+esc(res.location):'')+'</div>';
+      resEl.innerHTML='<div class="alert-box ok">'+esc(res.description)+(res.location?' — '+esc(res.location):'')+'</div>';
       document.getElementById('dispatch-serial').value='';
       setTimeout(function(){resEl.innerHTML='';},3000);
-      autoSave('dispatch', dispatchedItems, currentDispatchClient);
+      autoSave('dispatch',dispatchedItems,currentDispatchClient);
     } else if (res.notFound) {
-      resEl.innerHTML = '<div class="alert-box warn">Not found: '+esc(serial)+'</div><button class="btn-main amber" style="margin-top:6px" onclick="sendOverride()">Request Override</button><button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Skip</button>';
-      document.getElementById('dispatch-result').dataset.serial = serial;
-    } else {
-      resEl.innerHTML = '<div class="alert-box err">'+esc(res.msg)+'</div>';
-    }
+      resEl.innerHTML='<div class="alert-box warn">Not found: '+esc(serial)+'</div><button class="btn-main amber" style="margin-top:6px" onclick="sendOverride()">Request Override</button><button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Skip</button>';
+      resEl.dataset.serial=serial;
+    } else { resEl.innerHTML='<div class="alert-box err">'+esc(res.msg)+'</div>'; }
   });
 }
 
-function sendOverride() {
-  var serial = document.getElementById('dispatch-result').dataset.serial || '';
-  callGAS('requestOverride',{type:'DISPATCH OVERRIDE',serial:serial,reason:'Item not on stock'},function(){
-    toast('Override request sent','warn');
-    document.getElementById('dispatch-result').innerHTML='<div class="alert-box info">Override sent.</div>';
-    document.getElementById('dispatch-serial').value='';
-  });
-}
-
-function addFifoItem() {
-  if (!pendingFifoItem) return;
-  dispatchedItems.push(pendingFifoItem);
-  pendingFifoItem = null;
-  renderDispatchedList();
-  document.getElementById('dispatch-result').innerHTML='';
-  autoSave('dispatch', dispatchedItems, currentDispatchClient);
-}
-
-function clearDispatchResult() {
-  document.getElementById('dispatch-result').innerHTML='';
-  document.getElementById('dispatch-serial').value='';
-}
+function sendOverride() { var serial=document.getElementById('dispatch-result').dataset.serial||''; callGAS('requestOverride',{type:'DISPATCH OVERRIDE',serial:serial,reason:'Not on stock'},function(){toast('Override sent','warn');document.getElementById('dispatch-result').innerHTML='<div class="alert-box info">Override sent.</div>';document.getElementById('dispatch-serial').value='';}); }
+function addFifoItem() { if(!pendingFifoItem)return; dispatchedItems.push(pendingFifoItem); pendingFifoItem=null; renderDispatchedList(); document.getElementById('dispatch-result').innerHTML=''; autoSave('dispatch',dispatchedItems,currentDispatchClient); }
+function clearDispatchResult() { document.getElementById('dispatch-result').innerHTML=''; document.getElementById('dispatch-serial').value=''; }
 
 function renderDispatchedList() {
-  var el = document.getElementById('dispatched-list');
-  document.getElementById('disp-count').textContent = dispatchedItems.length;
-  document.getElementById('dispatch-actions').style.display = dispatchedItems.length ? 'block':'none';
-  if (!dispatchedItems.length) { el.innerHTML=''; return; }
-  el.innerHTML = dispatchedItems.map(function(it,i) {
-    return '<div class="item-row"><div class="item-body"><div class="pn">'+esc(it.stockSheet||'')+'</div><div class="ds">'+esc(it.description)+'</div><div class="sn">'+esc(it.serial)+'</div>'+(it.location?'<div class="loc">'+esc(it.location)+'</div>':'')+'</div><button class="rm-btn" data-idx="'+i+'" onclick="dispatchedItems.splice(parseInt(this.dataset.idx),1);renderDispatchedList()">x</button></div>';
-  }).join('');
+  var el=document.getElementById('dispatched-list');
+  document.getElementById('disp-count').textContent=dispatchedItems.length;
+  document.getElementById('dispatch-actions').style.display=dispatchedItems.length?'block':'none';
+  if(!dispatchedItems.length){el.innerHTML='';return;}
+  el.innerHTML=dispatchedItems.map(function(it,i){return '<div class="item-row"><div class="item-body"><div class="pn">'+esc(it.stockSheet||'')+'</div><div class="ds">'+esc(it.description)+'</div><div class="sn">'+esc(it.serial)+'</div>'+(it.location?'<div class="loc">'+esc(it.location)+'</div>':'')+'</div><button class="rm-btn" data-idx="'+i+'" onclick="dispatchedItems.splice(parseInt(this.dataset.idx),1);renderDispatchedList()">x</button></div>';}).join('');
 }
 
 function confirmAllDispatched() {
-  if (!dispatchedItems.length) { toast('No items scanned','err'); return; }
-  var btn = document.querySelector('#dispatch-actions .btn-main');
+  if(!dispatchedItems.length){toast('No items scanned','err');return;}
+  var btn=document.querySelector('#dispatch-actions .btn-main');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';}
-  callGAS('confirmDispatch', {clientName:currentDispatchClient, items:dispatchedItems}, function(res) {
+  callGAS('confirmDispatch',{clientName:currentDispatchClient,items:dispatchedItems},function(res){
     if(btn){btn.disabled=false;btn.innerHTML='Confirm All to Dispatch';}
-    if (res.ok) {
-      toast(res.msg,'ok');
-      callGAS('clearSession', {sessionId:DISP_SESSION}, function(){});
-      dispatchedItems=[]; renderDispatchedList();
-      document.getElementById('dispatch-result').innerHTML='';
-      document.getElementById('disp-save-status').textContent='';
-      document.getElementById('dispatch-scan-card').style.display='none';
-      loadRequests();
-    } else { toast(res.msg,'err'); }
+    if(res.ok){toast(res.msg,'ok');callGAS('clearSession',{sessionId:DISP_SESSION},function(){});dispatchedItems=[];renderDispatchedList();document.getElementById('dispatch-result').innerHTML='';document.getElementById('disp-save-status').textContent='';document.getElementById('dispatch-scan-card').style.display='none';loadRequests();}
+    else{toast(res.msg,'err');}
   });
 }
 
 function printDispatchLabel() {
-  if (!dispatchedItems.length) { toast('No items to print','err'); return; }
-  var now = new Date().toLocaleDateString('en-GB');
-  var rows = dispatchedItems.map(function(it,i){ return '<tr><td>'+(i+1)+'</td><td>'+esc(it.stockSheet||'')+'</td><td>'+esc(it.description)+'</td><td style="font-family:monospace">'+esc(it.serial)+'</td><td>'+esc(it.location||'')+'</td></tr>'; }).join('');
-  var html = '<html><head><style>body{font-family:Arial,sans-serif;padding:20px}h2{color:#007B7B}table{width:100%;border-collapse:collapse;margin-top:12px}th{background:#007B7B;color:#fff;padding:8px;text-align:left}td{padding:8px;border-bottom:1px solid #ddd}@media print{button{display:none}}</style></head><body><h2>Storage Solutions JO</h2><p><strong>Client:</strong> '+esc(currentDispatchClient)+'</p><p><strong>Date:</strong> '+now+'</p><p><strong>Items:</strong> '+dispatchedItems.length+'</p><table><thead><tr><th>#</th><th>Stock</th><th>Description</th><th>Serial No</th><th>Location</th></tr></thead><tbody>'+rows+'</tbody></table><scr'+'ipt>window.print();<\/scr'+'ipt></body></html>';
-  var w = window.open('','_blank'); w.document.write(html); w.document.close();
+  if(!dispatchedItems.length){toast('No items','err');return;}
+  var now=new Date().toLocaleDateString('en-GB');
+  var rows=dispatchedItems.map(function(it,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(it.stockSheet||'')+'</td><td>'+esc(it.description)+'</td><td style="font-family:monospace">'+esc(it.serial)+'</td><td>'+esc(it.location||'')+'</td></tr>';}).join('');
+  var html='<html><head><style>body{font-family:Arial,sans-serif;padding:20px}h2{color:#007B7B}table{width:100%;border-collapse:collapse;margin-top:12px}th{background:#007B7B;color:#fff;padding:8px;text-align:left}td{padding:8px;border-bottom:1px solid #ddd}@media print{button{display:none}}</style></head><body><h2>Storage Solutions JO</h2><p><strong>Client:</strong> '+esc(currentDispatchClient)+'</p><p><strong>Date:</strong> '+now+'</p><p><strong>Items:</strong> '+dispatchedItems.length+'</p><table><thead><tr><th>#</th><th>Stock</th><th>Description</th><th>Serial No</th><th>Location</th></tr></thead><tbody>'+rows+'</tbody></table><scr'+'ipt>window.print();<\/scr'+'ipt></body></html>';
+  var w=window.open('','_blank');w.document.write(html);w.document.close();
 }
 
 function enterDriverName() {
-  var current = document.getElementById('pu-driver').value;
-  var name = window.prompt('Enter driver name:', current || '');
-  if (name !== null) {
-    name = name.trim();
-    document.getElementById('pu-driver').value = name;
-    document.getElementById('driver-name-display').textContent = name;
-    var btn = document.getElementById('driver-name-btn');
-    btn.style.borderColor = name ? '#065f46' : '#007B7B';
-    btn.style.color = name ? '#065f46' : '#007B7B';
+  var current=document.getElementById('pu-driver').value;
+  var name=window.prompt('Enter driver name:',current||'');
+  if(name!==null){
+    name=name.trim();
+    document.getElementById('pu-driver').value=name;
+    document.getElementById('driver-name-display').textContent=name;
+    var btn=document.getElementById('driver-name-btn');
+    btn.style.borderColor=name?'#065f46':'#007B7B';
+    btn.style.color=name?'#065f46':'#007B7B';
   }
 }
 
 function loadPickupClients() {
-  callGAS('getAtDispatchAll', {clientName:''}, function(res) {
-    var items = res.items || [];
-    var seen = {}, clients = [];
-    items.forEach(function(it) {
-      var name = it.clientName || '';
-      if (name && !seen[name.toLowerCase()]) { seen[name.toLowerCase()]=true; clients.push(name); }
-    });
-    var sel = document.getElementById('pickup-client');
-    var current = sel.value;
-    sel.innerHTML = '<option value="">-- select client --</option>';
-    clients.sort().forEach(function(c) {
-      var o = document.createElement('option');
-      o.value = o.textContent = c;
-      if (c === current) o.selected = true;
-      sel.appendChild(o);
-    });
-    if (!clients.length) { var o=document.createElement('option'); o.value=''; o.textContent='No clients at dispatch'; o.disabled=true; sel.appendChild(o); }
-    if (current && clients.indexOf(current) >= 0) loadAtDispatch();
+  callGAS('getAtDispatchAll',{clientName:''},function(res){
+    var items=res.items||[],seen={},clients=[];
+    items.forEach(function(it){var name=it.clientName||'';if(name&&!seen[name.toLowerCase()]){seen[name.toLowerCase()]=true;clients.push(name);}});
+    var sel=document.getElementById('pickup-client'),current=sel.value;
+    sel.innerHTML='<option value="">-- select client --</option>';
+    clients.sort().forEach(function(c){var o=document.createElement('option');o.value=o.textContent=c;if(c===current)o.selected=true;sel.appendChild(o);});
+    if(!clients.length){var o=document.createElement('option');o.value='';o.textContent='No clients at dispatch';o.disabled=true;sel.appendChild(o);}
+    if(current&&clients.indexOf(current)>=0)loadAtDispatch();
   });
 }
 
 function loadAtDispatch() {
-  var client = document.getElementById('pickup-client').value;
-  if (!client) return;
-  callGAS('getAtDispatchAll', {clientName:client}, function(res) {
-    atDispatchList = res.items || [];
-    atDispatchConfirmed = {};
+  var client=document.getElementById('pickup-client').value;
+  if(!client)return;
+  callGAS('getAtDispatchAll',{clientName:client},function(res){
+    atDispatchList=res.items||[];
+    atDispatchConfirmed={};
     renderAtDispatchList();
-    var hasItems = atDispatchList.length > 0;
-    document.getElementById('at-dispatch-card').style.display    = hasItems ? 'block':'none';
-    document.getElementById('pickup-details-card').style.display = hasItems ? 'block':'none';
-    document.getElementById('dispatch-count').textContent = atDispatchList.length;
-    if (!hasItems) toast('No items at dispatch for this client','warn');
+    var hasItems=atDispatchList.length>0;
+    document.getElementById('at-dispatch-card').style.display=hasItems?'block':'none';
+    document.getElementById('pickup-details-card').style.display=hasItems?'block':'none';
+    document.getElementById('dispatch-count').textContent=atDispatchList.length;
+    if(!hasItems)toast('No items at dispatch for this client','warn');
   });
 }
 
 function renderAtDispatchList() {
-  var el = document.getElementById('at-dispatch-list');
-  if (!atDispatchList.length) { el.innerHTML='<div class="empty-state">No items at dispatch.</div>'; return; }
-  el.innerHTML = atDispatchList.map(function(it) {
-    var conf = atDispatchConfirmed[it.serial];
+  var el=document.getElementById('at-dispatch-list');
+  if(!atDispatchList.length){el.innerHTML='<div class="empty-state">No items at dispatch.</div>';return;}
+  el.innerHTML=atDispatchList.map(function(it){
+    var conf=atDispatchConfirmed[it.serial];
     return '<div class="item-row"><div class="item-body"><div class="pn">'+esc(it.stockSheet||'')+'</div><div class="ds">'+esc(it.description)+'</div><div class="sn">'+esc(it.serial)+'</div></div><button class="tick-btn'+(conf?' checked':'')+'" data-serial="'+esc(it.serial)+'" onclick="toggleConfirm(this.dataset.serial)">'+(conf?'v':'')+'</button></div>';
   }).join('');
 }
 
 function doPickupScan() {
-  var serial = document.getElementById('pickup-serial').value.trim();
-  if (!serial) { toast('Scan or enter Serial No','err'); return; }
-  var match = atDispatchList.find(function(it){return it.serial.toUpperCase()===serial.toUpperCase();});
-  if (match) {
-    atDispatchConfirmed[match.serial] = true;
-    renderAtDispatchList();
-    toast(match.description,'ok');
-    document.getElementById('pickup-serial').value='';
-    var confirmed = atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});
-    autoSave('pickup', confirmed, document.getElementById('pickup-client').value);
-  } else {
-    toast('Not in dispatch list: '+serial,'warn');
-    document.getElementById('pickup-serial').value='';
-  }
+  var serial=document.getElementById('pickup-serial').value.trim();
+  if(!serial){toast('Scan or enter Serial No','err');return;}
+  var match=atDispatchList.find(function(it){return it.serial.toUpperCase()===serial.toUpperCase();});
+  if(match){atDispatchConfirmed[match.serial]=true;renderAtDispatchList();toast(match.description,'ok');document.getElementById('pickup-serial').value='';var confirmed=atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});autoSave('pickup',confirmed,document.getElementById('pickup-client').value);}
+  else{toast('Not in dispatch list: '+serial,'warn');document.getElementById('pickup-serial').value='';}
 }
 
-function toggleConfirm(serial) {
-  atDispatchConfirmed[serial] = !atDispatchConfirmed[serial];
-  renderAtDispatchList();
-}
+function toggleConfirm(serial){atDispatchConfirmed[serial]=!atDispatchConfirmed[serial];renderAtDispatchList();}
 
 function submitPickup() {
   var driver  = document.getElementById('pu-driver').value.trim();
   var plate   = document.getElementById('pu-plate').value.trim();
   var vehicle = document.getElementById('pu-vehicle').value;
   var client  = document.getElementById('pickup-client').value;
-  if (!driver) { toast('Enter driver name','err'); return; }
-  if (!plate)  { toast('Enter license plate','err'); return; }
-  if (!vehicle){ toast('Select vehicle type','err'); return; }
-  var toConfirm = atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});
-  if (!toConfirm.length){ toast('Scan or tick at least one item','err'); return; }
+  if(!driver){toast('Enter driver name','err');return;}
+  if(!plate){toast('Enter license plate','err');return;}
+  if(!vehicle){toast('Select vehicle type','err');return;}
+  if(!sigHasMark){toast('Driver signature required','err');return;}
+  var toConfirm=atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});
+  if(!toConfirm.length){toast('Scan or tick at least one item','err');return;}
   setBusy('btn-confirm-pickup',true);
-  var sharedGivNo = parseInt(document.getElementById('pu-giv').value) || nextGiv;
-  var sheetGroups = {};
-  toConfirm.forEach(function(it) {
-    var s = it.stockSheet || 'Huawei Stock';
-    if (!sheetGroups[s]) sheetGroups[s] = [];
-    sheetGroups[s].push(it);
-  });
-  var sheets = Object.keys(sheetGroups), completed = 0, lastMsg = '';
-  sheets.forEach(function(sheet) {
-    callGAS('confirmPickup', {stockSheet:sheet, clientName:client, driverName:driver, licensePlate:plate, vehicleType:vehicle, givNo:sharedGivNo, items:sheetGroups[sheet]}, function(res) {
+
+  // Capture signature
+  var sigData = sigCanvas.toDataURL('image/png');
+
+  var sharedGivNo=parseInt(document.getElementById('pu-giv').value)||nextGiv;
+  var sheetGroups={};
+  toConfirm.forEach(function(it){var s=it.stockSheet||'Huawei Stock';if(!sheetGroups[s])sheetGroups[s]=[];sheetGroups[s].push(it);});
+  var sheets=Object.keys(sheetGroups),completed=0,lastMsg='';
+  sheets.forEach(function(sheet){
+    callGAS('confirmPickup',{stockSheet:sheet,clientName:client,driverName:driver,licensePlate:plate,vehicleType:vehicle,givNo:sharedGivNo,items:sheetGroups[sheet],signatureBase64:sigData},function(res){
       completed++;
-      if (res.ok) lastMsg = res.msg;
-      if (completed === sheets.length) {
-        setBusy('btn-confirm-pickup', false, 'Confirm Pickup &amp; Generate GIV');
-        toast(lastMsg || 'GIV confirmed','ok');
-        callGAS('clearSession', {sessionId:PICKUP_SESSION}, function(){});
+      if(res.ok)lastMsg=res.msg;
+      if(completed===sheets.length){
+        setBusy('btn-confirm-pickup',false,'Confirm Pickup &amp; Generate GIV');
+        toast(lastMsg||'GIV confirmed','ok');
+        callGAS('clearSession',{sessionId:PICKUP_SESSION},function(){});
         document.getElementById('pu-driver').value='';
         document.getElementById('driver-name-display').textContent='';
         document.getElementById('driver-name-btn').style.borderColor='#007B7B';
         document.getElementById('driver-name-btn').style.color='#007B7B';
         document.getElementById('pu-plate').value='';
         document.getElementById('pu-vehicle').value='';
-        nextGiv++; document.getElementById('pu-giv').value=nextGiv;
-        atDispatchConfirmed={}; atDispatchList=[];
+        clearSignature();
+        nextGiv++;document.getElementById('pu-giv').value=nextGiv;
+        atDispatchConfirmed={};atDispatchList=[];
         renderAtDispatchList();
         document.getElementById('at-dispatch-card').style.display='none';
         document.getElementById('pickup-details-card').style.display='none';
@@ -629,19 +602,6 @@ function submitPickup() {
       }
     });
   });
-}
-
-function processPlatePhoto(input) {
-  if(!input.files||!input.files[0])return;
-  document.getElementById('pu-plate').value='Reading...';
-  toast('Reading plate...','');
-  Tesseract.recognize(input.files[0],'eng',{tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'})
-  .then(function(r){
-    var text=r.data.text.replace(/[^A-Z0-9\-]/gi,'').trim();
-    document.getElementById('pu-plate').value=text||'';
-    if(text)toast('Plate: '+text,'ok'); else toast('Could not read — type manually','warn');
-  }).catch(function(){ document.getElementById('pu-plate').value=''; toast('OCR failed','warn'); });
-  input.value='';
 }
 
 function toast(msg,type){var el=document.getElementById('toast');el.textContent=msg;el.className='toast '+(type||'')+' show';setTimeout(function(){el.classList.remove('show');},3200);}
