@@ -108,6 +108,7 @@ select.inp{appearance:auto}
     </div>
     <div class="frow"><div class="lbl">Supplier Name</div><input class="inp" id="grv-supplier" placeholder="Optional" autocomplete="off"></div>
     <div class="frow"><div class="lbl">Date Received</div><input class="inp" id="grv-date" type="date"></div>
+    <div class="frow"><div class="lbl">Shipment Remarks (optional)</div><input class="inp" id="grv-remarks" placeholder="Note any shipment-level issues..."></div>
     <div class="frow"><div class="lbl">GRV Number (auto)</div><input class="inp" id="grv-no" type="number" placeholder="Auto"></div>
   </div>
   <div class="card">
@@ -126,10 +127,6 @@ select.inp{appearance:auto}
 
     <div id="receive-actions" style="display:none">
       <button class="btn-main blue" onclick="saveProgress()" id="btn-save-progress" style="margin-bottom:8px">Save Progress (this pallet)</button>
-      <hr class="divider">
-      <div class="frow"><div class="lbl">Shipment Remarks (optional)</div>
-        <input class="inp" id="grv-remarks" placeholder="Note any shipment-level issues...">
-      </div>
       <div class="checkbox-row">
         <input type="checkbox" id="chk-full-details">
         <label for="chk-full-details">Include full item list in email (serial nos &amp; pallets)</label>
