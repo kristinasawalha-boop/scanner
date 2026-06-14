@@ -42,6 +42,11 @@ select.inp{appearance:auto}
 .item-body .pal{font-size:11px;color:#007B7B;font-weight:700;margin-top:2px}
 .saved-badge{font-size:10px;background:#065f46;color:#fff;border-radius:4px;padding:1px 6px;margin-left:4px}
 .unexp-badge{font-size:10px;background:#92660a;color:#fff;border-radius:4px;padding:1px 6px;margin-left:4px}
+.cond-note-wrap{margin-top:7px;padding-top:7px;border-top:1px solid #e8f0f0}
+.cond-note-lbl{font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
+.cond-note-inp{width:100%;padding:7px 10px;border:1.5px solid #c8dede;border-radius:7px;font-size:13px;color:#111;background:#fff;outline:none}
+.cond-note-inp:focus{border-color:#e07000}
+.cond-note-inp.has-note{border-color:#e07000;background:#fffbeb}
 .rm-btn{background:none;border:none;color:#c02020;font-size:18px;cursor:pointer;padding:2px 6px;flex-shrink:0}
 .tick-btn{width:30px;height:30px;border-radius:50%;border:2px solid #c8dede;background:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;color:transparent;transition:all .15s}
 .tick-btn.checked{background:#007B7B;border-color:#007B7B;color:#fff}
@@ -79,6 +84,10 @@ select.inp{appearance:auto}
 .sig-wrap canvas{position:absolute;top:0;left:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
 .sig-clear{position:absolute;top:6px;right:8px;background:#fff;border:1px solid #c8dede;border-radius:5px;padding:3px 8px;font-size:12px;color:#c02020;font-weight:700;cursor:pointer;z-index:2}
 .sig-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;color:#aaa;pointer-events:none;z-index:1}
+.checkbox-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f0f7f7;border-radius:8px;margin-bottom:10px;cursor:pointer}
+.checkbox-row input[type=checkbox]{width:18px;height:18px;accent-color:#007B7B;cursor:pointer;flex-shrink:0}
+.checkbox-row label{font-size:13px;color:#444;font-weight:600;cursor:pointer}
+.divider{border:none;border-top:1px solid #e0efef;margin:12px 0}
 @media print{.hdr,.tabs,.toast,.btn-main,.btn-sm,.scan-row,.rm-btn,.tick-btn{display:none!important}.screen{display:block!important;padding:0!important}.card{box-shadow:none;border:1px solid #ccc;margin-bottom:8px}}
 </style>
 </head>
@@ -89,6 +98,8 @@ select.inp{appearance:auto}
   <div class="tab" id="tab-dispatch" onclick="switchTab('dispatch')">Dispatch</div>
   <div class="tab" id="tab-pickup" onclick="switchTab('pickup')">Pickup</div>
 </div>
+
+<!-- RECEIVE -->
 <div class="screen active" id="screen-receive">
   <div class="card">
     <div class="card-title">Shipment Details</div>
@@ -97,7 +108,6 @@ select.inp{appearance:auto}
     </div>
     <div class="frow"><div class="lbl">Supplier Name</div><input class="inp" id="grv-supplier" placeholder="Optional" autocomplete="off"></div>
     <div class="frow"><div class="lbl">Date Received</div><input class="inp" id="grv-date" type="date"></div>
-    <div class="frow"><div class="lbl">Remarks</div><input class="inp" id="grv-remarks" placeholder="Note any damage, discrepancies, missing items..."></div>
     <div class="frow"><div class="lbl">GRV Number (auto)</div><input class="inp" id="grv-no" type="number" placeholder="Auto"></div>
   </div>
   <div class="card">
@@ -111,15 +121,25 @@ select.inp{appearance:auto}
       <input type="hidden" id="recv-pallet">
     </div>
     <div class="scan-row"><input class="inp" id="receive-serial" placeholder="Scan Serial No..." autocomplete="off" onkeydown="if(event.key==='Enter')doReceiveScan()"><button class="btn-sm" onclick="doReceiveScan()">Add</button></div>
-    <div id="receive-actions" style="display:none;margin-bottom:8px">
-      <button class="btn-main blue" onclick="saveProgress()" id="btn-save-progress">Save Progress (this pallet)</button>
-      <button class="btn-main dark" onclick="confirmAllReceived(false)" id="btn-confirm-all" style="margin-top:6px">&#10003; Confirm &amp; Send Summary</button>
-      <button class="btn-main grey" onclick="confirmAllReceived(true)" style="margin-top:6px">&#10003; Confirm &amp; Send Full Details</button>
-    </div>
     <div id="receive-result"></div>
     <div id="received-list"></div>
+
+    <div id="receive-actions" style="display:none">
+      <button class="btn-main blue" onclick="saveProgress()" id="btn-save-progress" style="margin-bottom:8px">Save Progress (this pallet)</button>
+      <hr class="divider">
+      <div class="frow"><div class="lbl">Shipment Remarks (optional)</div>
+        <input class="inp" id="grv-remarks" placeholder="Note any shipment-level issues...">
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="chk-full-details">
+        <label for="chk-full-details">Include full item list in email (serial nos &amp; pallets)</label>
+      </div>
+      <button class="btn-main dark" onclick="confirmAllReceived()" id="btn-confirm-all">&#10003; Confirm &amp; Send GRV</button>
+    </div>
   </div>
 </div>
+
+<!-- DISPATCH -->
 <div class="screen" id="screen-dispatch">
   <div class="card">
     <div class="card-title">Pending Requests</div>
@@ -139,6 +159,8 @@ select.inp{appearance:auto}
     </div>
   </div>
 </div>
+
+<!-- PICKUP -->
 <div class="screen" id="screen-pickup">
   <div class="card">
     <div class="card-title">Find Items at Dispatch</div>
@@ -166,7 +188,7 @@ select.inp{appearance:auto}
       <input type="hidden" id="pu-plate">
     </div>
     <div class="frow"><div class="lbl">Vehicle Type *</div>
-      <select class="inp" id="pu-vehicle"><option value="">-- select --</option><option>Pickup</option><option>Diana</option><option>LB</option><option>1/2 LB</option><option>20ft container</option><option>20ft flatbed trailer</option><option>40ft container</option></select>
+      <select class="inp" id="pu-vehicle"><option value="">-- select --</option></select>
     </div>
     <div class="frow"><div class="lbl">GIV Number (auto)</div><input class="inp" id="pu-giv" type="number" placeholder="Auto-generated"></div>
     <div class="frow">
@@ -177,6 +199,7 @@ select.inp{appearance:auto}
     <button class="btn-main dark" id="btn-confirm-pickup" onclick="submitPickup()">Confirm Pickup &amp; Generate GIV</button>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
 <script>
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbzYlfSMio86VuYPtysStqvlONJUvMZY81Av_ySu1C20Q84OfB1rPeVNOhcPyI6Veyr6DQ/exec';
@@ -184,11 +207,40 @@ var currentTab='receive', currentDispatchClient='', currentRequestLineItems=[], 
 var pendingItems=[], savedItems=[], dispatchedItems=[], atDispatchList=[], atDispatchConfirmed={};
 var pendingFifoItem=null, nextGrv=0, nextGiv=0, sigHasMark=false, sigCanvas, sigCtx;
 var RECV_SESSION='recv-'+Date.now(), DISP_SESSION='dispatch-'+Date.now(), PICKUP_SESSION='pickup-'+Date.now();
+
 window.addEventListener('load', function() {
   document.getElementById('grv-date').value = new Date().toISOString().split('T')[0];
-  callGAS('getConfig', {}, function(cfg) { nextGrv=cfg.nextGRV||1; nextGiv=cfg.nextGIV||1; document.getElementById('grv-no').value=nextGrv; document.getElementById('pu-giv').value=nextGiv; });
-  loadPickupClients(); setTimeout(initSignaturePad, 400);
+  callGAS('getConfig', {}, function(cfg) {
+    nextGrv=cfg.nextGRV||1; nextGiv=cfg.nextGIV||1;
+    document.getElementById('grv-no').value=nextGrv;
+    document.getElementById('pu-giv').value=nextGiv;
+  });
+  loadVehicleTypes();
+  loadPickupClients();
+  setTimeout(initSignaturePad, 400);
 });
+
+// Load vehicle types from Prices sheet
+function loadVehicleTypes() {
+  callGAS('getVehicleTypes', {}, function(res) {
+    var sel = document.getElementById('pu-vehicle');
+    sel.innerHTML = '<option value="">-- select --</option>';
+    (res.types || []).forEach(function(t) {
+      var o = document.createElement('option');
+      o.value = o.textContent = t;
+      sel.appendChild(o);
+    });
+    // Fallback if Prices sheet not available
+    if (!res.ok || !res.types || !res.types.length) {
+      ['Pickup','Diana','LB','1/2 LB','20ft container','20ft flatbed trailer','40ft container'].forEach(function(t) {
+        var o = document.createElement('option');
+        o.value = o.textContent = t;
+        sel.appendChild(o);
+      });
+    }
+  });
+}
+
 function initSignaturePad() {
   sigCanvas=document.getElementById('sig-canvas'); if(!sigCanvas)return;
   var wrap=document.getElementById('sig-wrap'); var w=wrap.offsetWidth||320,h=wrap.offsetHeight||160; var dpr=window.devicePixelRatio||1;
@@ -202,34 +254,351 @@ function initSignaturePad() {
   sigCanvas.addEventListener('mousedown',startDraw); sigCanvas.addEventListener('touchstart',startDraw,{passive:false});
   sigCanvas.addEventListener('mouseup',endDraw); sigCanvas.addEventListener('mouseleave',endDraw); sigCanvas.addEventListener('touchend',endDraw);
 }
+
 function clearSignature(){if(!sigCtx||!sigCanvas)return;var w=sigCanvas.width/(window.devicePixelRatio||1);var h=sigCanvas.height/(window.devicePixelRatio||1);sigCtx.fillStyle='#ffffff';sigCtx.fillRect(0,0,w,h);sigHasMark=false;document.getElementById('sig-hint').style.display='block';}
-function switchTab(tab){currentTab=tab;['receive','dispatch','pickup'].forEach(function(t){document.getElementById('tab-'+t).classList.toggle('active',t===tab);document.getElementById('screen-'+t).classList.toggle('active',t===tab);});if(tab==='dispatch')loadRequests();if(tab==='pickup'){loadPickupClients();setTimeout(initSignaturePad,300);}}
-function callGAS(action,params,cb){fetch(GAS_URL+'?action='+action,{method:'POST',body:JSON.stringify(params)}).then(function(r){return r.json();}).then(function(d){if(cb)cb(d);}).catch(function(){toast('Connection error','err');});}
-function autoSave(type,items,clientName){var sessionId=type==='dispatch'?DISP_SESSION:PICKUP_SESSION;var statusEl=document.getElementById(type==='dispatch'?'disp-save-status':'pickup-save-status');if(statusEl)statusEl.textContent='Saving...';callGAS('autoSave',{sessionId:sessionId,type:type,clientName:clientName||'',items:items},function(res){if(statusEl)statusEl.textContent=res.ok?'Saved':'Save failed';});}
+
+function switchTab(tab){
+  currentTab=tab;
+  ['receive','dispatch','pickup'].forEach(function(t){
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('screen-'+t).classList.toggle('active',t===tab);
+  });
+  if(tab==='dispatch')loadRequests();
+  if(tab==='pickup'){loadPickupClients();setTimeout(initSignaturePad,300);}
+}
+
+function callGAS(action,params,cb){
+  fetch(GAS_URL+'?action='+action,{method:'POST',body:JSON.stringify(params)})
+    .then(function(r){return r.json();})
+    .then(function(d){if(cb)cb(d);})
+    .catch(function(){toast('Connection error','err');});
+}
+
+function autoSave(type,items,clientName){
+  var sessionId=type==='dispatch'?DISP_SESSION:PICKUP_SESSION;
+  var statusEl=document.getElementById(type==='dispatch'?'disp-save-status':'pickup-save-status');
+  if(statusEl)statusEl.textContent='Saving...';
+  callGAS('autoSave',{sessionId:sessionId,type:type,clientName:clientName||'',items:items},function(res){
+    if(statusEl)statusEl.textContent=res.ok?'Saved':'Save failed';
+  });
+}
+
 function enterPalletNo(){var current=document.getElementById('recv-pallet').value;var val=window.prompt('Enter pallet number:',current||'');if(val!==null){val=val.trim();document.getElementById('recv-pallet').value=val;document.getElementById('pallet-display').textContent=val;var btn=document.getElementById('pallet-btn');btn.style.borderColor=val?'#065f46':'#007B7B';btn.style.color=val?'#065f46':'#007B7B';}}
 function enterPlate(){var current=document.getElementById('pu-plate').value;var val=window.prompt('Enter license plate:',current||'');if(val!==null){val=val.trim();document.getElementById('pu-plate').value=val;document.getElementById('plate-display').textContent=val;var btn=document.getElementById('plate-btn');btn.style.borderColor=val?'#065f46':'#007B7B';btn.style.color=val?'#065f46':'#007B7B';}}
 function enterDriverName(){var name=window.prompt('Enter driver name:',document.getElementById('pu-driver').value||'');if(name!==null){name=name.trim();document.getElementById('pu-driver').value=name;document.getElementById('driver-name-display').textContent=name;var btn=document.getElementById('driver-name-btn');btn.style.borderColor=name?'#065f46':'#007B7B';btn.style.color=name?'#065f46':'#007B7B';}}
-function doReceiveScan(){var stock=document.getElementById('grv-stock').value;if(!stock){toast('Select stock sheet first','warn');return;}var serial=document.getElementById('receive-serial').value.trim();if(!serial){toast('Enter Serial No','err');return;}var pallet=document.getElementById('recv-pallet').value.trim();var resEl=document.getElementById('receive-result');if(pendingItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})||savedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})){toast('Already added: '+serial,'warn');document.getElementById('receive-serial').value='';return;}callGAS('lookupIncoming',{serial:serial,stockSheet:stock},function(res){if(!res.ok){resEl.innerHTML='<div class="alert-box err">'+esc(res.msg)+'</div>';document.getElementById('receive-serial').value='';return;}var item={serial:serial,description:res.description||'',paletteNo:pallet||res.paletteNo||'',stockSheet:res.stockSheet||stock,rowIndex:res.rowIndex||0,flagged:res.flagged||false};pendingItems.unshift(item);renderReceivedList();var cls=res.flagged?'warn':'ok';var msg=res.flagged?'Not on advance list'+(res.description?' - '+esc(res.description):''):esc(res.description)+(pallet?' - Pallet '+esc(pallet):'');resEl.innerHTML='<div class="alert-box '+cls+'">'+msg+'</div>';document.getElementById('receive-serial').value='';setTimeout(function(){resEl.innerHTML='';},3500);});}
-function saveProgress(){if(!pendingItems.length){toast('No pending items','warn');return;}var stock=document.getElementById('grv-stock').value;if(!stock){toast('Select stock sheet first','warn');return;}var btn=document.getElementById('btn-save-progress');btn.disabled=true;btn.innerHTML='<span class="spin"></span>';callGAS('saveReceivedBatch',{stockSheet:stock,sessionId:RECV_SESSION,supplierName:document.getElementById('grv-supplier').value.trim(),items:pendingItems},function(res){btn.disabled=false;btn.innerHTML='Save Progress (this pallet)';if(res.ok){(res.items||[]).forEach(function(w){var m=pendingItems.find(function(p){return p.serial.toUpperCase()===w.serial.toUpperCase();});if(m){m.rowIndex=w.rowIndex;m.saved=true;savedItems.unshift(m);}});pendingItems=[];renderReceivedList();toast(res.msg,'ok');}else{toast(res.msg||'Save failed','err');}});}
-function renderReceivedList(){var el=document.getElementById('received-list');var total=pendingItems.length+savedItems.length;var expCount=savedItems.filter(function(i){return !i.flagged;}).length;var unexpCount=savedItems.filter(function(i){return i.flagged;}).length;var eb=document.getElementById('recv-exp-count'),el2=document.getElementById('recv-exp-label');var ub=document.getElementById('recv-unexp-count'),ul=document.getElementById('recv-unexp-label');var pb=document.getElementById('recv-pending-count');pb.textContent=pendingItems.length;if(expCount){eb.textContent=expCount;eb.style.display='inline-block';el2.style.display='inline';}else{eb.style.display='none';el2.style.display='none';}if(unexpCount){ub.textContent=unexpCount;ub.style.display='inline-block';ul.style.display='inline';}else{ub.style.display='none';ul.style.display='none';}document.getElementById('receive-actions').style.display=total?'block':'none';if(!total){el.innerHTML='';return;}var html='';pendingItems.forEach(function(it,i){html+='<div class="item-row"><div class="item-body"><div class="ds">'+esc(it.description||'unknown')+(it.flagged?'<span class="unexp-badge">unexpected</span>':'')+'</div><div class="sn">'+esc(it.serial)+'</div>'+(it.paletteNo?'<div class="pal">Pallet '+esc(it.paletteNo)+'</div>':'')+'</div><button class="rm-btn" data-idx="'+i+'" onclick="removePending(this.dataset.idx)">x</button></div>';});savedItems.forEach(function(it){html+='<div class="item-row '+(it.flagged?'unexp':'saved')+'"><div class="item-body"><div class="ds">'+esc(it.description)+'<span class="'+(it.flagged?'unexp-badge':'saved-badge')+'">'+(it.flagged?'saved unexpected':'saved')+'</span></div><div class="sn">'+esc(it.serial)+'</div>'+(it.paletteNo?'<div class="pal">Pallet '+esc(it.paletteNo)+'</div>':'')+'</div></div>';});el.innerHTML=html;}
+
+function doReceiveScan(){
+  var stock=document.getElementById('grv-stock').value;
+  if(!stock){toast('Select stock sheet first','warn');return;}
+  var serial=document.getElementById('receive-serial').value.trim();
+  if(!serial){toast('Enter Serial No','err');return;}
+  var pallet=document.getElementById('recv-pallet').value.trim();
+  var resEl=document.getElementById('receive-result');
+  if(pendingItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})||
+     savedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})){
+    toast('Already added: '+serial,'warn');document.getElementById('receive-serial').value='';return;
+  }
+  callGAS('lookupIncoming',{serial:serial,stockSheet:stock},function(res){
+    if(!res.ok){resEl.innerHTML='<div class="alert-box err">'+esc(res.msg)+'</div>';document.getElementById('receive-serial').value='';return;}
+    var item={serial:serial,description:res.description||'',paletteNo:pallet||res.paletteNo||'',stockSheet:res.stockSheet||stock,rowIndex:res.rowIndex||0,flagged:res.flagged||false,conditionNote:''};
+    pendingItems.unshift(item);
+    renderReceivedList();
+    var cls=res.flagged?'warn':'ok';
+    var msg=res.flagged?'Not on advance list'+(res.description?' - '+esc(res.description):''):esc(res.description)+(pallet?' - Pallet '+esc(pallet):'');
+    resEl.innerHTML='<div class="alert-box '+cls+'">'+msg+'</div>';
+    document.getElementById('receive-serial').value='';
+    setTimeout(function(){resEl.innerHTML='';},3500);
+  });
+}
+
+function updateConditionNote(serial, val) {
+  var item = pendingItems.find(function(i){return i.serial===serial;});
+  if(!item) item = savedItems.find(function(i){return i.serial===serial;});
+  if(item) item.conditionNote = val.trim();
+  // Update input styling
+  var inp = document.querySelector('.cond-note-inp[data-serial="'+serial+'"]');
+  if(inp) inp.classList.toggle('has-note', val.trim().length > 0);
+}
+
+function saveProgress(){
+  if(!pendingItems.length){toast('No pending items','warn');return;}
+  var stock=document.getElementById('grv-stock').value;
+  if(!stock){toast('Select stock sheet first','warn');return;}
+  var btn=document.getElementById('btn-save-progress');btn.disabled=true;btn.innerHTML='<span class="spin"></span>';
+  callGAS('saveReceivedBatch',{stockSheet:stock,sessionId:RECV_SESSION,supplierName:document.getElementById('grv-supplier').value.trim(),items:pendingItems},function(res){
+    btn.disabled=false;btn.innerHTML='Save Progress (this pallet)';
+    if(res.ok){
+      (res.items||[]).forEach(function(w){
+        var m=pendingItems.find(function(p){return p.serial.toUpperCase()===w.serial.toUpperCase();});
+        if(m){m.rowIndex=w.rowIndex;m.saved=true;savedItems.unshift(m);}
+      });
+      pendingItems=[];renderReceivedList();toast(res.msg,'ok');
+    }else{toast(res.msg||'Save failed','err');}
+  });
+}
+
+function renderReceivedList(){
+  var el=document.getElementById('received-list');
+  var total=pendingItems.length+savedItems.length;
+  var expCount=savedItems.filter(function(i){return !i.flagged;}).length;
+  var unexpCount=savedItems.filter(function(i){return i.flagged;}).length;
+  var eb=document.getElementById('recv-exp-count'),el2=document.getElementById('recv-exp-label');
+  var ub=document.getElementById('recv-unexp-count'),ul=document.getElementById('recv-unexp-label');
+  var pb=document.getElementById('recv-pending-count');
+  pb.textContent=pendingItems.length;
+  if(expCount){eb.textContent=expCount;eb.style.display='inline-block';el2.style.display='inline';}else{eb.style.display='none';el2.style.display='none';}
+  if(unexpCount){ub.textContent=unexpCount;ub.style.display='inline-block';ul.style.display='inline';}else{ub.style.display='none';ul.style.display='none';}
+  document.getElementById('receive-actions').style.display=total?'block':'none';
+  if(!total){el.innerHTML='';return;}
+  var html='';
+  pendingItems.forEach(function(it,i){
+    html+='<div class="item-row">';
+    html+='<div class="item-body">';
+    html+='<div class="ds">'+esc(it.description||'unknown')+(it.flagged?'<span class="unexp-badge">unexpected</span>':'')+'</div>';
+    html+='<div class="sn">'+esc(it.serial)+'</div>';
+    if(it.paletteNo)html+='<div class="pal">Pallet '+esc(it.paletteNo)+'</div>';
+    html+='<div class="cond-note-wrap">';
+    html+='<div class="cond-note-lbl">Condition note (optional)</div>';
+    html+='<input class="cond-note-inp'+(it.conditionNote?' has-note':'')+'" data-serial="'+esc(it.serial)+'" placeholder="e.g. box torn, dented corner..." value="'+esc(it.conditionNote||'')+'" oninput="updateConditionNote(\''+esc(it.serial)+'\',this.value)">';
+    html+='</div>';
+    html+='</div>';
+    html+='<button class="rm-btn" data-idx="'+i+'" onclick="removePending(this.dataset.idx)">&#x2715;</button>';
+    html+='</div>';
+  });
+  savedItems.forEach(function(it){
+    html+='<div class="item-row '+(it.flagged?'unexp':'saved')+'">';
+    html+='<div class="item-body">';
+    html+='<div class="ds">'+esc(it.description)+'<span class="'+(it.flagged?'unexp-badge':'saved-badge')+'">'+(it.flagged?'saved unexpected':'saved')+'</span></div>';
+    html+='<div class="sn">'+esc(it.serial)+'</div>';
+    if(it.paletteNo)html+='<div class="pal">Pallet '+esc(it.paletteNo)+'</div>';
+    if(it.conditionNote){
+      html+='<div class="cond-note-wrap">';
+      html+='<div class="cond-note-lbl">Condition note</div>';
+      html+='<input class="cond-note-inp has-note" data-serial="'+esc(it.serial)+'" value="'+esc(it.conditionNote)+'" oninput="updateConditionNote(\''+esc(it.serial)+'\',this.value)">';
+      html+='</div>';
+    }else{
+      html+='<div class="cond-note-wrap">';
+      html+='<div class="cond-note-lbl">Condition note (optional)</div>';
+      html+='<input class="cond-note-inp" data-serial="'+esc(it.serial)+'" placeholder="e.g. box torn, dented corner..." value="" oninput="updateConditionNote(\''+esc(it.serial)+'\',this.value)">';
+      html+='</div>';
+    }
+    html+='</div></div>';
+  });
+  el.innerHTML=html;
+}
+
 function removePending(idx){pendingItems.splice(parseInt(idx),1);renderReceivedList();}
-function confirmAllReceived(sendDetails){var total=pendingItems.length+savedItems.length;if(!total){toast('No items scanned','err');return;}var stock=document.getElementById('grv-stock').value;if(!stock){toast('Select stock sheet first','err');return;}if(pendingItems.length){callGAS('saveReceivedBatch',{stockSheet:stock,sessionId:RECV_SESSION,supplierName:document.getElementById('grv-supplier').value.trim(),items:pendingItems},function(res){if(res.ok){(res.items||[]).forEach(function(w){var m=pendingItems.find(function(p){return p.serial.toUpperCase()===w.serial.toUpperCase();});if(m){m.rowIndex=w.rowIndex;savedItems.unshift(m);}});pendingItems=[];doConfirmAll(stock,sendDetails);}else{toast(res.msg||'Save failed','err');}});}else{doConfirmAll(stock,sendDetails);}}
-function doConfirmAll(stock,sendDetails){var btn=document.getElementById('btn-confirm-all');btn.disabled=true;btn.innerHTML='<span class="spin"></span>';callGAS('confirmReceive',{stockSheet:stock,sessionId:RECV_SESSION,supplierName:document.getElementById('grv-supplier').value.trim(),dateIn:document.getElementById('grv-date').value,remarks:document.getElementById('grv-remarks').value.trim(),sendDetails:sendDetails?true:false,items:savedItems},function(res){btn.disabled=false;btn.innerHTML='&#10003; Confirm &amp; Send Summary';if(res.ok){toast(res.msg,'ok');pendingItems=[];savedItems=[];renderReceivedList();document.getElementById('receive-result').innerHTML='';document.getElementById('grv-supplier').value='';document.getElementById('grv-remarks').value='';document.getElementById('recv-pallet').value='';document.getElementById('pallet-display').textContent='';document.getElementById('pallet-btn').style.borderColor='#007B7B';document.getElementById('pallet-btn').style.color='#007B7B';nextGrv++;document.getElementById('grv-no').value=nextGrv;}else{toast(res.msg,'err');}});}
-function loadRequests(){document.getElementById('requests-list').innerHTML='<div class="empty-state">Loading...</div>';callGAS('getMaterialRequests',{},function(res){var el=document.getElementById('requests-list');allRequests=res.items||[];if(!allRequests.length){el.innerHTML='<div class="empty-state">No pending requests.</div>';document.getElementById('dispatch-scan-card').style.display='none';return;}el.innerHTML=allRequests.map(function(it,idx){var lbl=it.endClientName||it.clientName||'';var lh=(it.lineItems||[]).map(function(l){return '<div class="rc-line"><span class="rc-qty">'+esc(l.quantity||1)+'</span><span class="rc-desc">'+esc(l.description)+'</span>'+(l.location?'<span class="rc-loc"> '+esc(l.location)+'</span>':'')+'</div>';}).join('');return '<div class="request-card"><div class="rc-client">'+esc(lbl)+'</div>'+lh+'<div class="rc-meta">By '+esc(it.requestor)+' - '+esc(it.timestamp)+'</div><button class="btn-sm" style="margin-top:8px" data-idx="'+idx+'" onclick="selectRequest(parseInt(this.dataset.idx))">Start Scanning</button></div>';}).join('');});}
-function selectRequest(idx){var it=allRequests[idx];if(!it)return;currentDispatchClient=it.clientName;currentRequestLineItems=it.lineItems||[];document.getElementById('dispatch-client-display').textContent=it.endClientName||it.clientName||'';document.getElementById('dispatch-scan-card').style.display='block';dispatchedItems=[];renderDispatchedList();document.getElementById('dispatch-serial').focus();}
-function doDispatchScan(){if(!currentDispatchClient){toast('Select a request first','err');return;}var serial=document.getElementById('dispatch-serial').value.trim();if(!serial){toast('Enter Serial No','err');return;}var resEl=document.getElementById('dispatch-result');if(dispatchedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})){toast('Already added: '+serial,'warn');document.getElementById('dispatch-serial').value='';return;}callGAS('scanDispatch',{serial:serial,clientName:currentDispatchClient},function(res){if(res.ok&&res.found){if(currentRequestLineItems&&currentRequestLineItems.length>0){var fn=function(s){return s.toLowerCase().trim();};var matchedLine=currentRequestLineItems.find(function(l){return fn(l.description)===fn(res.description);});if(!matchedLine){resEl.innerHTML='<div class="alert-box err">BLOCKED: '+esc(res.description)+' is not in this request.</div>';document.getElementById('dispatch-serial').value='';return;}var already=dispatchedItems.filter(function(it){return fn(it.description)===fn(matchedLine.description);}).length;if(already>=parseInt(matchedLine.quantity)){resEl.innerHTML='<div class="alert-box err">QUANTITY EXCEEDED: '+already+'/'+matchedLine.quantity+' of '+esc(matchedLine.description)+'</div>';document.getElementById('dispatch-serial').value='';return;}}if(res.fifoWarning){pendingFifoItem={rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location};resEl.innerHTML='<div class="alert-box warn">FIFO: '+esc(res.fifoWarning)+'</div><button class="btn-main amber" style="margin-top:6px" onclick="addFifoItem()">Use anyway</button><button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Scan older</button>';document.getElementById('dispatch-serial').value='';return;}dispatchedItems.push({rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location});renderDispatchedList();resEl.innerHTML='<div class="alert-box ok">'+esc(res.description)+(res.location?' - '+esc(res.location):'')+'</div>';document.getElementById('dispatch-serial').value='';setTimeout(function(){resEl.innerHTML='';},3000);autoSave('dispatch',dispatchedItems,currentDispatchClient);}else if(res.notFound){resEl.innerHTML='<div class="alert-box warn">Not found: '+esc(serial)+'</div><button class="btn-main amber" style="margin-top:6px" onclick="sendOverride()">Request Override</button><button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Skip</button>';resEl.dataset.serial=serial;}else{resEl.innerHTML='<div class="alert-box err">'+esc(res.msg)+'</div>';}});}
+
+function confirmAllReceived(){
+  var total=pendingItems.length+savedItems.length;
+  if(!total){toast('No items scanned','err');return;}
+  var stock=document.getElementById('grv-stock').value;
+  if(!stock){toast('Select stock sheet first','err');return;}
+  var sendDetails=document.getElementById('chk-full-details').checked;
+  if(pendingItems.length){
+    callGAS('saveReceivedBatch',{stockSheet:stock,sessionId:RECV_SESSION,supplierName:document.getElementById('grv-supplier').value.trim(),items:pendingItems},function(res){
+      if(res.ok){
+        (res.items||[]).forEach(function(w){
+          var m=pendingItems.find(function(p){return p.serial.toUpperCase()===w.serial.toUpperCase();});
+          if(m){m.rowIndex=w.rowIndex;savedItems.unshift(m);}
+        });
+        pendingItems=[];doConfirmAll(stock,sendDetails);
+      }else{toast(res.msg||'Save failed','err');}
+    });
+  }else{doConfirmAll(stock,sendDetails);}
+}
+
+function doConfirmAll(stock,sendDetails){
+  var btn=document.getElementById('btn-confirm-all');btn.disabled=true;btn.innerHTML='<span class="spin"></span>';
+  var allItems=savedItems.slice();
+  callGAS('confirmReceive',{
+    stockSheet:stock,
+    sessionId:RECV_SESSION,
+    supplierName:document.getElementById('grv-supplier').value.trim(),
+    dateIn:document.getElementById('grv-date').value,
+    remarks:document.getElementById('grv-remarks').value.trim(),
+    sendDetails:sendDetails,
+    items:allItems
+  },function(res){
+    btn.disabled=false;btn.innerHTML='&#10003; Confirm &amp; Send GRV';
+    if(res.ok){
+      toast(res.msg,'ok');
+      pendingItems=[];savedItems=[];renderReceivedList();
+      document.getElementById('receive-result').innerHTML='';
+      document.getElementById('grv-supplier').value='';
+      document.getElementById('grv-remarks').value='';
+      document.getElementById('chk-full-details').checked=false;
+      document.getElementById('recv-pallet').value='';
+      document.getElementById('pallet-display').textContent='';
+      document.getElementById('pallet-btn').style.borderColor='#007B7B';
+      document.getElementById('pallet-btn').style.color='#007B7B';
+      nextGrv++;document.getElementById('grv-no').value=nextGrv;
+    }else{toast(res.msg,'err');}
+  });
+}
+
+function loadRequests(){
+  document.getElementById('requests-list').innerHTML='<div class="empty-state">Loading...</div>';
+  callGAS('getMaterialRequests',{},function(res){
+    var el=document.getElementById('requests-list');
+    allRequests=res.items||[];
+    if(!allRequests.length){el.innerHTML='<div class="empty-state">No pending requests.</div>';document.getElementById('dispatch-scan-card').style.display='none';return;}
+    el.innerHTML=allRequests.map(function(it,idx){
+      var lbl=it.endClientName||it.clientName||'';
+      var lh=(it.lineItems||[]).map(function(l){return '<div class="rc-line"><span class="rc-qty">'+esc(l.quantity||1)+'</span><span class="rc-desc">'+esc(l.description)+'</span>'+(l.location?'<span class="rc-loc"> '+esc(l.location)+'</span>':'')+'</div>';}).join('');
+      return '<div class="request-card"><div class="rc-client">'+esc(lbl)+'</div>'+lh+'<div class="rc-meta">By '+esc(it.requestor)+' - '+esc(it.timestamp)+'</div><button class="btn-sm" style="margin-top:8px" data-idx="'+idx+'" onclick="selectRequest(parseInt(this.dataset.idx))">Start Scanning</button></div>';
+    }).join('');
+  });
+}
+
+function selectRequest(idx){
+  var it=allRequests[idx];if(!it)return;
+  currentDispatchClient=it.clientName;currentRequestLineItems=it.lineItems||[];
+  document.getElementById('dispatch-client-display').textContent=it.endClientName||it.clientName||'';
+  document.getElementById('dispatch-scan-card').style.display='block';
+  dispatchedItems=[];renderDispatchedList();document.getElementById('dispatch-serial').focus();
+}
+
+function doDispatchScan(){
+  if(!currentDispatchClient){toast('Select a request first','err');return;}
+  var serial=document.getElementById('dispatch-serial').value.trim();
+  if(!serial){toast('Enter Serial No','err');return;}
+  var resEl=document.getElementById('dispatch-result');
+  if(dispatchedItems.find(function(i){return i.serial.toUpperCase()===serial.toUpperCase();})){toast('Already added: '+serial,'warn');document.getElementById('dispatch-serial').value='';return;}
+  callGAS('scanDispatch',{serial:serial,clientName:currentDispatchClient},function(res){
+    if(res.ok&&res.found){
+      if(currentRequestLineItems&&currentRequestLineItems.length>0){
+        var fn=function(s){return s.toLowerCase().trim();};
+        var matchedLine=currentRequestLineItems.find(function(l){return fn(l.description)===fn(res.description);});
+        if(!matchedLine){resEl.innerHTML='<div class="alert-box err">BLOCKED: '+esc(res.description)+' is not in this request.</div>';document.getElementById('dispatch-serial').value='';return;}
+        var already=dispatchedItems.filter(function(it){return fn(it.description)===fn(matchedLine.description);}).length;
+        if(already>=parseInt(matchedLine.quantity)){resEl.innerHTML='<div class="alert-box err">QUANTITY EXCEEDED: '+already+'/'+matchedLine.quantity+' of '+esc(matchedLine.description)+'</div>';document.getElementById('dispatch-serial').value='';return;}
+      }
+      if(res.fifoWarning){
+        pendingFifoItem={rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location};
+        resEl.innerHTML='<div class="alert-box warn">FIFO: '+esc(res.fifoWarning)+'</div><button class="btn-main amber" style="margin-top:6px" onclick="addFifoItem()">Use anyway</button><button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Scan older</button>';
+        document.getElementById('dispatch-serial').value='';return;
+      }
+      dispatchedItems.push({rowIndex:res.rowIndex,stockSheet:res.stockSheet,serial:res.serial,partNo:res.partNo,description:res.description,location:res.location});
+      renderDispatchedList();
+      resEl.innerHTML='<div class="alert-box ok">'+esc(res.description)+(res.location?' - '+esc(res.location):'')+'</div>';
+      document.getElementById('dispatch-serial').value='';
+      setTimeout(function(){resEl.innerHTML='';},3000);
+      autoSave('dispatch',dispatchedItems,currentDispatchClient);
+    }else if(res.notFound){
+      resEl.innerHTML='<div class="alert-box warn">Not found: '+esc(serial)+'</div><button class="btn-main amber" style="margin-top:6px" onclick="sendOverride()">Request Override</button><button class="btn-main grey" style="margin-top:6px" onclick="clearDispatchResult()">Skip</button>';
+      resEl.dataset.serial=serial;
+    }else{resEl.innerHTML='<div class="alert-box err">'+esc(res.msg)+'</div>';}
+  });
+}
+
 function sendOverride(){var serial=document.getElementById('dispatch-result').dataset.serial||'';callGAS('requestOverride',{type:'DISPATCH OVERRIDE',serial:serial,reason:'Not on stock'},function(){toast('Override sent','warn');document.getElementById('dispatch-result').innerHTML='<div class="alert-box info">Override sent.</div>';document.getElementById('dispatch-serial').value='';});}
 function addFifoItem(){if(!pendingFifoItem)return;dispatchedItems.push(pendingFifoItem);pendingFifoItem=null;renderDispatchedList();document.getElementById('dispatch-result').innerHTML='';autoSave('dispatch',dispatchedItems,currentDispatchClient);}
 function clearDispatchResult(){document.getElementById('dispatch-result').innerHTML='';document.getElementById('dispatch-serial').value='';}
-function renderDispatchedList(){var el=document.getElementById('dispatched-list');document.getElementById('disp-count').textContent=dispatchedItems.length;document.getElementById('dispatch-actions').style.display=dispatchedItems.length?'block':'none';if(!dispatchedItems.length){el.innerHTML='';return;}el.innerHTML=dispatchedItems.map(function(it,i){return '<div class="item-row"><div class="item-body"><div class="pn">'+esc(it.stockSheet||'')+'</div><div class="ds">'+esc(it.description)+'</div><div class="sn">'+esc(it.serial)+'</div>'+(it.location?'<div class="loc">'+esc(it.location)+'</div>':'')+'</div><button class="rm-btn" data-idx="'+i+'" onclick="dispatchedItems.splice(parseInt(this.dataset.idx),1);renderDispatchedList()">x</button></div>';}).join('');}
-function confirmAllDispatched(){if(!dispatchedItems.length){toast('No items scanned','err');return;}var btn=document.querySelector('#dispatch-actions .btn-main');if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';}callGAS('confirmDispatch',{clientName:currentDispatchClient,items:dispatchedItems},function(res){if(btn){btn.disabled=false;btn.innerHTML='Confirm All to Dispatch';}if(res.ok){toast(res.msg,'ok');callGAS('clearSession',{sessionId:DISP_SESSION},function(){});dispatchedItems=[];renderDispatchedList();document.getElementById('dispatch-result').innerHTML='';document.getElementById('disp-save-status').textContent='';document.getElementById('dispatch-scan-card').style.display='none';loadRequests();}else{toast(res.msg,'err');}});}
-function printDispatchLabel(){if(!dispatchedItems.length){toast('No items','err');return;}var now=new Date().toLocaleDateString('en-GB');var rows=dispatchedItems.map(function(it,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(it.stockSheet||'')+'</td><td>'+esc(it.description)+'</td><td style="font-family:monospace">'+esc(it.serial)+'</td><td>'+esc(it.location||'')+'</td></tr>';}).join('');var html='<html><head><style>body{font-family:Arial,sans-serif;padding:20px}h2{color:#007B7B}table{width:100%;border-collapse:collapse;margin-top:12px}th{background:#007B7B;color:#fff;padding:8px;text-align:left}td{padding:8px;border-bottom:1px solid #ddd}@media print{button{display:none}}</style></head><body><h2>Storage Solutions JO</h2><p><strong>Client:</strong> '+esc(currentDispatchClient)+'</p><p><strong>Date:</strong> '+now+'</p><p><strong>Items:</strong> '+dispatchedItems.length+'</p><table><thead><tr><th>#</th><th>Stock</th><th>Description</th><th>Serial No</th><th>Location</th></tr></thead><tbody>'+rows+'</tbody></table><scr'+'ipt>window.print();<\/scr'+'ipt></body></html>';var w=window.open('','_blank');w.document.write(html);w.document.close();}
-function loadPickupClients(){callGAS('getAtDispatchAll',{clientName:''},function(res){var items=res.items||[],seen={},clients=[];items.forEach(function(it){var n=it.clientName||'';if(n&&!seen[n.toLowerCase()]){seen[n.toLowerCase()]=true;clients.push(n);}});var sel=document.getElementById('pickup-client'),current=sel.value;sel.innerHTML='<option value="">-- select client --</option>';clients.sort().forEach(function(c){var o=document.createElement('option');o.value=o.textContent=c;if(c===current)o.selected=true;sel.appendChild(o);});if(!clients.length){var o=document.createElement('option');o.value='';o.textContent='No clients at dispatch';o.disabled=true;sel.appendChild(o);}if(current&&clients.indexOf(current)>=0)loadAtDispatch();});}
-function loadAtDispatch(){var client=document.getElementById('pickup-client').value;if(!client)return;callGAS('getAtDispatchAll',{clientName:client},function(res){atDispatchList=res.items||[];atDispatchConfirmed={};renderAtDispatchList();var h=atDispatchList.length>0;document.getElementById('at-dispatch-card').style.display=h?'block':'none';document.getElementById('pickup-details-card').style.display=h?'block':'none';document.getElementById('dispatch-count').textContent=atDispatchList.length;if(!h)toast('No items at dispatch for this client','warn');if(h)setTimeout(initSignaturePad,300);});}
-function renderAtDispatchList(){var el=document.getElementById('at-dispatch-list');if(!atDispatchList.length){el.innerHTML='<div class="empty-state">No items at dispatch.</div>';return;}el.innerHTML=atDispatchList.map(function(it){var conf=atDispatchConfirmed[it.serial];return '<div class="item-row"><div class="item-body"><div class="pn">'+esc(it.stockSheet||'')+'</div><div class="ds">'+esc(it.description)+'</div><div class="sn">'+esc(it.serial)+'</div></div><button class="tick-btn'+(conf?' checked':'')+'" data-serial="'+esc(it.serial)+'" onclick="toggleConfirm(this.dataset.serial)">'+(conf?'v':'')+'</button></div>';}).join('');}
-function doPickupScan(){var serial=document.getElementById('pickup-serial').value.trim();if(!serial){toast('Scan or enter Serial No','err');return;}var match=atDispatchList.find(function(it){return it.serial.toUpperCase()===serial.toUpperCase();});if(match){atDispatchConfirmed[match.serial]=true;renderAtDispatchList();toast(match.description,'ok');document.getElementById('pickup-serial').value='';var confirmed=atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});autoSave('pickup',confirmed,document.getElementById('pickup-client').value);}else{toast('Not in list: '+serial,'warn');document.getElementById('pickup-serial').value='';}}
+
+function renderDispatchedList(){
+  var el=document.getElementById('dispatched-list');
+  document.getElementById('disp-count').textContent=dispatchedItems.length;
+  document.getElementById('dispatch-actions').style.display=dispatchedItems.length?'block':'none';
+  if(!dispatchedItems.length){el.innerHTML='';return;}
+  el.innerHTML=dispatchedItems.map(function(it,i){
+    return '<div class="item-row"><div class="item-body"><div class="pn">'+esc(it.stockSheet||'')+'</div><div class="ds">'+esc(it.description)+'</div><div class="sn">'+esc(it.serial)+'</div>'+(it.location?'<div class="loc">'+esc(it.location)+'</div>':'')+'</div><button class="rm-btn" data-idx="'+i+'" onclick="dispatchedItems.splice(parseInt(this.dataset.idx),1);renderDispatchedList()">&#x2715;</button></div>';
+  }).join('');
+}
+
+function confirmAllDispatched(){
+  if(!dispatchedItems.length){toast('No items scanned','err');return;}
+  var btn=document.querySelector('#dispatch-actions .btn-main');if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';}
+  callGAS('confirmDispatch',{clientName:currentDispatchClient,items:dispatchedItems},function(res){
+    if(btn){btn.disabled=false;btn.innerHTML='Confirm All to Dispatch';}
+    if(res.ok){toast(res.msg,'ok');callGAS('clearSession',{sessionId:DISP_SESSION},function(){});dispatchedItems=[];renderDispatchedList();document.getElementById('dispatch-result').innerHTML='';document.getElementById('disp-save-status').textContent='';document.getElementById('dispatch-scan-card').style.display='none';loadRequests();}
+    else{toast(res.msg,'err');}
+  });
+}
+
+function printDispatchLabel(){
+  if(!dispatchedItems.length){toast('No items','err');return;}
+  var now=new Date().toLocaleDateString('en-GB');
+  var rows=dispatchedItems.map(function(it,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(it.stockSheet||'')+'</td><td>'+esc(it.description)+'</td><td style="font-family:monospace">'+esc(it.serial)+'</td><td>'+esc(it.location||'')+'</td></tr>';}).join('');
+  var html='<html><head><style>body{font-family:Arial,sans-serif;padding:20px}h2{color:#007B7B}table{width:100%;border-collapse:collapse;margin-top:12px}th{background:#007B7B;color:#fff;padding:8px;text-align:left}td{padding:8px;border-bottom:1px solid #ddd}@media print{button{display:none}}</style></head><body><h2>Storage Solutions JO</h2><p><strong>Client:</strong> '+esc(currentDispatchClient)+'</p><p><strong>Date:</strong> '+now+'</p><p><strong>Items:</strong> '+dispatchedItems.length+'</p><table><thead><tr><th>#</th><th>Stock</th><th>Description</th><th>Serial No</th><th>Location</th></tr></thead><tbody>'+rows+'</tbody></table><scr'+'ipt>window.print();<\/scr'+'ipt></body></html>';
+  var w=window.open('','_blank');w.document.write(html);w.document.close();
+}
+
+function loadPickupClients(){
+  callGAS('getAtDispatchAll',{clientName:''},function(res){
+    var items=res.items||[],seen={},clients=[];
+    items.forEach(function(it){var n=it.clientName||'';if(n&&!seen[n.toLowerCase()]){seen[n.toLowerCase()]=true;clients.push(n);}});
+    var sel=document.getElementById('pickup-client'),current=sel.value;
+    sel.innerHTML='<option value="">-- select client --</option>';
+    clients.sort().forEach(function(c){var o=document.createElement('option');o.value=o.textContent=c;if(c===current)o.selected=true;sel.appendChild(o);});
+    if(!clients.length){var o=document.createElement('option');o.value='';o.textContent='No clients at dispatch';o.disabled=true;sel.appendChild(o);}
+    if(current&&clients.indexOf(current)>=0)loadAtDispatch();
+  });
+}
+
+function loadAtDispatch(){
+  var client=document.getElementById('pickup-client').value;if(!client)return;
+  callGAS('getAtDispatchAll',{clientName:client},function(res){
+    atDispatchList=res.items||[];atDispatchConfirmed={};renderAtDispatchList();
+    var h=atDispatchList.length>0;
+    document.getElementById('at-dispatch-card').style.display=h?'block':'none';
+    document.getElementById('pickup-details-card').style.display=h?'block':'none';
+    document.getElementById('dispatch-count').textContent=atDispatchList.length;
+    if(!h)toast('No items at dispatch for this client','warn');
+    if(h)setTimeout(initSignaturePad,300);
+  });
+}
+
+function renderAtDispatchList(){
+  var el=document.getElementById('at-dispatch-list');
+  if(!atDispatchList.length){el.innerHTML='<div class="empty-state">No items at dispatch.</div>';return;}
+  el.innerHTML=atDispatchList.map(function(it){
+    var conf=atDispatchConfirmed[it.serial];
+    return '<div class="item-row"><div class="item-body"><div class="pn">'+esc(it.stockSheet||'')+'</div><div class="ds">'+esc(it.description)+'</div><div class="sn">'+esc(it.serial)+'</div></div><button class="tick-btn'+(conf?' checked':'')+'" data-serial="'+esc(it.serial)+'" onclick="toggleConfirm(this.dataset.serial)">'+(conf?'&#10003;':'')+'</button></div>';
+  }).join('');
+}
+
+function doPickupScan(){
+  var serial=document.getElementById('pickup-serial').value.trim();if(!serial){toast('Scan or enter Serial No','err');return;}
+  var match=atDispatchList.find(function(it){return it.serial.toUpperCase()===serial.toUpperCase();});
+  if(match){atDispatchConfirmed[match.serial]=true;renderAtDispatchList();toast(match.description,'ok');document.getElementById('pickup-serial').value='';var confirmed=atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});autoSave('pickup',confirmed,document.getElementById('pickup-client').value);}
+  else{toast('Not in list: '+serial,'warn');document.getElementById('pickup-serial').value='';}
+}
+
 function toggleConfirm(serial){atDispatchConfirmed[serial]=!atDispatchConfirmed[serial];renderAtDispatchList();}
-function submitPickup(){var driver=document.getElementById('pu-driver').value.trim();var plate=document.getElementById('pu-plate').value.trim();var vehicle=document.getElementById('pu-vehicle').value;var client=document.getElementById('pickup-client').value;if(!driver){toast('Enter driver name','err');return;}if(!plate){toast('Enter license plate','err');return;}if(!vehicle){toast('Select vehicle type','err');return;}if(!sigHasMark){toast('Driver signature required','err');return;}var toConfirm=atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});if(!toConfirm.length){toast('Scan or tick at least one item','err');return;}setBusy('btn-confirm-pickup',true);var w=sigCanvas.width/(window.devicePixelRatio||1),h=sigCanvas.height/(window.devicePixelRatio||1);sigCtx.globalCompositeOperation='destination-over';sigCtx.fillStyle='#ffffff';sigCtx.fillRect(0,0,w,h);sigCtx.globalCompositeOperation='source-over';var sigData=sigCanvas.toDataURL('image/png');var sharedGivNo=parseInt(document.getElementById('pu-giv').value)||nextGiv;callGAS('confirmPickup',{clientName:client,driverName:driver,licensePlate:plate,vehicleType:vehicle,givNo:sharedGivNo,items:toConfirm,signatureBase64:sigData},function(res){setBusy('btn-confirm-pickup',false,'Confirm Pickup &amp; Generate GIV');if(res.ok){toast(res.msg,'ok');callGAS('clearSession',{sessionId:PICKUP_SESSION},function(){});document.getElementById('pu-driver').value='';document.getElementById('driver-name-display').textContent='';document.getElementById('driver-name-btn').style.borderColor='#007B7B';document.getElementById('driver-name-btn').style.color='#007B7B';document.getElementById('pu-plate').value='';document.getElementById('plate-display').textContent='';document.getElementById('plate-btn').style.borderColor='#007B7B';document.getElementById('plate-btn').style.color='#007B7B';document.getElementById('pu-vehicle').value='';clearSignature();nextGiv++;document.getElementById('pu-giv').value=nextGiv;atDispatchConfirmed={};atDispatchList=[];renderAtDispatchList();document.getElementById('at-dispatch-card').style.display='none';document.getElementById('pickup-details-card').style.display='none';loadPickupClients();}else{toast(res.msg,'err');}});}
+
+function submitPickup(){
+  var driver=document.getElementById('pu-driver').value.trim();
+  var plate=document.getElementById('pu-plate').value.trim();
+  var vehicle=document.getElementById('pu-vehicle').value;
+  var client=document.getElementById('pickup-client').value;
+  if(!driver){toast('Enter driver name','err');return;}
+  if(!plate){toast('Enter license plate','err');return;}
+  if(!vehicle){toast('Select vehicle type','err');return;}
+  if(!sigHasMark){toast('Driver signature required','err');return;}
+  var toConfirm=atDispatchList.filter(function(it){return atDispatchConfirmed[it.serial];});
+  if(!toConfirm.length){toast('Scan or tick at least one item','err');return;}
+  setBusy('btn-confirm-pickup',true);
+  var w=sigCanvas.width/(window.devicePixelRatio||1),h=sigCanvas.height/(window.devicePixelRatio||1);
+  sigCtx.globalCompositeOperation='destination-over';sigCtx.fillStyle='#ffffff';sigCtx.fillRect(0,0,w,h);sigCtx.globalCompositeOperation='source-over';
+  var sigData=sigCanvas.toDataURL('image/png');
+  var sharedGivNo=parseInt(document.getElementById('pu-giv').value)||nextGiv;
+  callGAS('confirmPickup',{clientName:client,driverName:driver,licensePlate:plate,vehicleType:vehicle,givNo:sharedGivNo,items:toConfirm,signatureBase64:sigData},function(res){
+    setBusy('btn-confirm-pickup',false,'Confirm Pickup &amp; Generate GIV');
+    if(res.ok){
+      toast(res.msg,'ok');
+      callGAS('clearSession',{sessionId:PICKUP_SESSION},function(){});
+      document.getElementById('pu-driver').value='';document.getElementById('driver-name-display').textContent='';document.getElementById('driver-name-btn').style.borderColor='#007B7B';document.getElementById('driver-name-btn').style.color='#007B7B';
+      document.getElementById('pu-plate').value='';document.getElementById('plate-display').textContent='';document.getElementById('plate-btn').style.borderColor='#007B7B';document.getElementById('plate-btn').style.color='#007B7B';
+      document.getElementById('pu-vehicle').value='';
+      clearSignature();nextGiv++;document.getElementById('pu-giv').value=nextGiv;
+      atDispatchConfirmed={};atDispatchList=[];renderAtDispatchList();
+      document.getElementById('at-dispatch-card').style.display='none';document.getElementById('pickup-details-card').style.display='none';
+      loadPickupClients();
+    }else{toast(res.msg,'err');}
+  });
+}
+
 function toast(msg,type){var el=document.getElementById('toast');el.textContent=msg;el.className='toast '+(type||'')+' show';setTimeout(function(){el.classList.remove('show');},3200);}
 function setBusy(id,busy,label){var btn=document.getElementById(id);btn.disabled=busy;if(!busy&&label)btn.innerHTML=label;if(busy)btn.innerHTML='<span class="spin"></span>';}
 function esc(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
