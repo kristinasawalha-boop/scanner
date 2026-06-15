@@ -78,7 +78,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 <div class="toast" id="toast"></div>
 <script>
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbzYlfSMio86VuYPtysStqvlONJUvMZY81Av_ySu1C20Q84OfB1rPeVNOhcPyI6Veyr6DQ/exec';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbzoEZl-CU3V-O8Yh4h0y-XE1To4XOqExk6aPKof5PbDMXkilj-D8VD_nCaE997FE7BCpQ/exec';
 var lineItems=[],selectedDesc='',selectedStock='',selectedAvail=0,searchTimer=null;
 var endClientHistory=JSON.parse(localStorage.getItem('ssolsEndClients')||'[]');
 document.addEventListener('click',function(e){if(!e.target.closest('#desc-search')&&!e.target.closest('#search-results'))document.getElementById('search-results').classList.remove('open');if(!e.target.closest('#req-endclient')&&!e.target.closest('#endclient-suggest'))document.getElementById('endclient-suggest').classList.remove('open');});
