@@ -85,6 +85,9 @@ select.inp{appearance:auto}
 .sig-clear{position:absolute;top:6px;right:8px;background:#fff;border:1px solid #c8dede;border-radius:5px;padding:3px 8px;font-size:12px;color:#c02020;font-weight:700;cursor:pointer;z-index:2}
 .sig-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;color:#aaa;pointer-events:none;z-index:1}
 .checkbox-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f0f7f7;border-radius:8px;margin-bottom:10px;cursor:pointer}
+.sticky-save-bar{position:fixed;top:0;left:0;right:0;z-index:1000;background:#1d4ed8;padding:8px 12px;display:none;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.sticky-save-bar button{width:100%;padding:11px;background:#fff;color:#1d4ed8;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer}
+.sticky-save-bar button:disabled{background:#b0c8c8;color:#fff;cursor:not-allowed}
 .checkbox-row input[type=checkbox]{width:18px;height:18px;accent-color:#007B7B;cursor:pointer;flex-shrink:0}
 .checkbox-row label{font-size:13px;color:#444;font-weight:600;cursor:pointer}
 .divider{border:none;border-top:1px solid #e0efef;margin:12px 0}
@@ -92,6 +95,9 @@ select.inp{appearance:auto}
 </style>
 </head>
 <body>
+<div class="sticky-save-bar" id="sticky-save-bar">
+  <button id="sticky-btn-save" onclick="saveProgress()">💾 Save Progress (this pallet)</button>
+</div>
 <div class="hdr"><div class="hdr-title">Storage Solutions JO</div><div class="hdr-sub">Solis Inventory System</div></div>
 <div class="tabs">
   <div class="tab active" id="tab-receive" onclick="switchTab('receive')">Receive In</div>
@@ -322,8 +328,10 @@ function saveProgress(){
   var stock=document.getElementById('grv-stock').value;
   if(!stock){toast('Select stock sheet first','warn');return;}
   var btn=document.getElementById('btn-save-progress');btn.disabled=true;btn.innerHTML='<span class="spin"></span>';
+  var sBtn=document.getElementById('sticky-btn-save');if(sBtn){sBtn.disabled=true;sBtn.textContent='Saving...';}
   callGAS('saveReceivedBatch',{stockSheet:stock,sessionId:RECV_SESSION,supplierName:document.getElementById('grv-supplier').value.trim(),items:pendingItems},function(res){
     btn.disabled=false;btn.innerHTML='Save Progress (this pallet)';
+    if(sBtn){sBtn.disabled=false;sBtn.textContent='💾 Save Progress (this pallet)';}
     if(res.ok){
       (res.items||[]).forEach(function(w){
         var m=pendingItems.find(function(p){return p.serial.toUpperCase()===w.serial.toUpperCase();});
@@ -346,6 +354,8 @@ function renderReceivedList(){
   if(expCount){eb.textContent=expCount;eb.style.display='inline-block';el2.style.display='inline';}else{eb.style.display='none';el2.style.display='none';}
   if(unexpCount){ub.textContent=unexpCount;ub.style.display='inline-block';ul.style.display='inline';}else{ub.style.display='none';ul.style.display='none';}
   document.getElementById('receive-actions').style.display=total?'block':'none';
+  document.getElementById('sticky-save-bar').style.display=total?'block':'none';
+  if(total){document.body.style.paddingTop='54px';}else{document.body.style.paddingTop='';}
   if(!total){el.innerHTML='';return;}
   var html='';
   pendingItems.forEach(function(it,i){
